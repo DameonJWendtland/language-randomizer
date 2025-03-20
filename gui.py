@@ -77,6 +77,9 @@ def create_main_gui(root):
     label = tk.Label(left_frame, text="Randomized iterations:")
     label.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
+
+    iteration_var = tk.StringVar(left_frame)
+    iteration_var.set("")
     def validate_input(new_value):
         if new_value == "":
             return True
@@ -87,7 +90,7 @@ def create_main_gui(root):
         except ValueError:
             return False
     validate_command = (left_frame.register(validate_input), '%P')
-    number_entry = tk.Entry(left_frame, validate="key", validatecommand=validate_command)
+    number_entry = tk.Entry(left_frame, textvariable=iteration_var, validate="key", validatecommand=validate_command)
     number_entry.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
     progress_bar = ttk.Progressbar(left_frame, orient="horizontal", length=200, mode="determinate")
@@ -97,16 +100,17 @@ def create_main_gui(root):
     translate_button.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
 
-    def check_language_validity(*args):
-        current = language_selector.get()
-        if current == "":
-            language_dropdown['values'] = supported_languages
+    def check_validity(*args):
+        current_language = language_selector.get()
+        iter_text = iteration_var.get().strip()
+        if current_language == "" or current_language not in supported_languages or iter_text == "":
             translate_button.config(state="disabled")
-        elif current in supported_languages:
-            translate_button.config(state="normal")
         else:
-            translate_button.config(state="disabled")
-    language_selector.trace("w", check_language_validity)
+            translate_button.config(state="normal")
+    language_selector.trace("w", check_validity)
+    iteration_var.trace("w", check_validity)
+
+    check_validity()
 
     left_frame.grid_columnconfigure(0, weight=1)
     left_frame.grid_columnconfigure(1, weight=1)
