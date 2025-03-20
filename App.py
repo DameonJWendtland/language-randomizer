@@ -113,7 +113,7 @@ def randomizer(text, queue):
     output_text.config(state="disabled")
     print(text)
     queue.put(100)
-    lang_chain = "Detected language: (" + detectedLanguage + ")"
+    lang_chain = "Detected language: [" + detectedLanguage + "]"
     for lang in usedLanguages:
         lang_chain += " -> " + lang
     lang_used_label = tk.Label(right_frame, text="Used Languages: \n")
@@ -160,25 +160,39 @@ def validate_input(new_value):
     except ValueError:
         return False
 
+
 def open_options():
     options_win = tk.Toplevel(root)
     options_win.title("Options - Force Languages")
+
+    info_text = tk.Text(options_win, wrap=tk.WORD, height=5, width=50)
+    info_text.insert("1.0", "You may select the language you want to be definitely included in the randomizer. To undo selection, just reopen the options window and apply changes without anything selected.\n\nEverything will be unselected after reopening!")
+    info_text.config(state="disabled")
+    info_text.pack(padx=10, pady=(0, 10), fill="x")
+
+    info_label = tk.Label(options_win, text="Select forced languages:")
+    info_label.pack(padx=10, pady=(0, 10), fill="x")
+
     global forced_vars
     forced_vars = {}
     frame = tk.Frame(options_win)
     frame.pack(padx=10, pady=10)
+
     for i, lang in enumerate(supported_languages):
         var = tk.BooleanVar()
         forced_vars[lang] = var
         chk = tk.Checkbutton(frame, text=lang, variable=var)
         chk.grid(row=i // 5, column=i % 5, sticky="w", padx=5, pady=5)
+
     def apply_options():
         global forcedLanguages
         forcedLanguages = [lang for lang, var in forced_vars.items() if var.get()]
         options_win.destroy()
         print("Forced languages:", forcedLanguages)
+
     apply_btn = tk.Button(options_win, text="Apply", command=apply_options)
     apply_btn.pack(pady=10)
+
 
 root = tk.Tk()
 root.title("Language Randomizer")
@@ -212,7 +226,7 @@ language_dropdown.grid(row=count, column=0, sticky="ew")
 options_button = tk.Button(left_frame, text="Options", command=open_options)
 options_button.grid(row=count, column=1, sticky="ew")
 count += 1
-label = tk.Label(left_frame, text="How many times it shall be translated:")
+label = tk.Label(left_frame, text="Randomized iterations:")
 label.grid(row=count, column=0, columnspan=2, sticky="ew")
 count += 1
 validate_command = (left_frame.register(validate_input), '%P')
