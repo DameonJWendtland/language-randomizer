@@ -64,31 +64,17 @@ def language(text, value):
 
 
 def randomizer(text, language_selector, right_frame, progress_queue):
-    """
-    Executes the translation chain.
-    Expects:
-        - text: Input text
-        - language_selector: tk.StringVar of the dropdown (target language)
-        - right_frame: Frame where the output is displayed
-        - progress_queue: Queue for updating the progress display
-    Returns:
-        - result_text: Translated final text
-        - lang_chain: String indicating the languages used
-        - selected_language_name: The originally selected target language
-    """
     global detectedLanguage, usedLanguages, forcedLanguages, setLoopTimes
-
     detected_lang_code = translator.detect(text).lang
     detectedLanguage = LANGUAGES.get(detected_lang_code, "Unknown")
-
     selected_language_name = language_selector.get()
     selected_language_index = supported_languages.index(selected_language_name)
     selected_language_code = target_languages[selected_language_index]
-
     num_steps = setLoopTimes - 1
     if forcedLanguages:
         num_steps = max(num_steps, len(forcedLanguages))
-
+    total_steps = num_steps + 2
+    progress_queue.put(100 * 1 / total_steps)
     forced_count = len(forcedLanguages)
     forced_positions = []
     forced_order = []
@@ -97,7 +83,6 @@ def randomizer(text, language_selector, right_frame, progress_queue):
         forced_positions.sort()
         forced_order = list(forcedLanguages)
         rdm.shuffle(forced_order)
-
     for i in range(num_steps):
         if forced_count > 0 and i in forced_positions:
             forced_lang = forced_order[forced_positions.index(i)]
@@ -106,22 +91,17 @@ def randomizer(text, language_selector, right_frame, progress_queue):
         else:
             if usedLanguages:
                 last_language = usedLanguages[-1]
-                candidate_indices = [i for i in range(1, len(supported_languages) + 1) if
-                                     supported_languages[i - 1] != last_language]
+                candidate_indices = [j for j in range(1, len(supported_languages) + 1) if supported_languages[j - 1] != last_language]
                 random_value = rdm.choice(candidate_indices)
             else:
                 random_value = rdm.randint(1, len(supported_languages))
             text = language(text, random_value)
-        print(text)
-        progress_queue.put(100 * (i + 1) / num_steps if num_steps > 0 else 100)
-
+        progress_queue.put(100 * (1 + (i + 1)) / total_steps)
     text = safe_translate(text, selected_language_code)
-
+    progress_queue.put(100)
     lang_chain = "Detected language: [" + detectedLanguage + "]"
     for lang in usedLanguages:
         lang_chain += " -> " + lang
-
-    usedLanguages = []
+    usedLanguages.clear()
     detectedLanguage = ""
-
     return text, lang_chain, selected_language_name
