@@ -181,7 +181,11 @@ def open_options():
     apply_btn.pack(pady=10)
 
 root = tk.Tk()
-root.title("Language Randomizer by D. J. Wendtland")
+root.title("Language Randomizer")
+# Credit-Label unten links, klein und in hellgrau
+credit_label = tk.Label(root, text="by D. J. Wendtland", font=("Helvetica", 8), fg="grey")
+credit_label.grid(row=1, column=0, columnspan=2, sticky="w", padx=5, pady=5)
+
 left_frame = tk.Frame(root)
 left_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 right_frame = tk.Frame(root)
@@ -189,6 +193,7 @@ right_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(1, weight=1)
 root.grid_rowconfigure(0, weight=1)
+
 count = 0
 label = tk.Label(left_frame, text="Input:")
 label.grid(row=count, column=0, columnspan=2, sticky="ew")
@@ -220,10 +225,12 @@ count += 1
 button = tk.Button(left_frame, text="Translate Text", command=on_button_click)
 button.grid(row=count, column=0, columnspan=2, sticky="ew")
 count += 1
+
 left_frame.grid_columnconfigure(0, weight=1)
 left_frame.grid_columnconfigure(1, weight=1)
 left_frame.grid_rowconfigure(1, weight=1)
 right_frame.grid_columnconfigure(0, weight=1)
 right_frame.grid_rowconfigure(1, weight=1)
 right_frame.grid_rowconfigure(3, weight=1)
+
 root.mainloop()
