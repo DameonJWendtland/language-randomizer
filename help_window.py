@@ -4,7 +4,7 @@ from tkinter import ttk
 def open_help():
     help_win = tk.Toplevel()
     help_win.title("Help")
-    help_win.minsize(500, 700)
+    help_win.minsize(450, 500)
     canvas = tk.Canvas(help_win)
     scrollbar = tk.Scrollbar(help_win, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
@@ -13,6 +13,10 @@ def open_help():
     canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
     canvas.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+    canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+    canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
     label_above = tk.Label(scrollable_frame, text=(
         "This program should not be used as a serious translator since the precision is not that good. "
         "Rather use DeepL or something else :)"

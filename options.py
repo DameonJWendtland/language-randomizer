@@ -4,7 +4,7 @@ from translator import supported_languages, forcedLanguages
 def open_options():
     options_win = tk.Toplevel()
     options_win.title("Options - Force Languages")
-    options_win.geometry("800x400")
+    options_win.geometry("700x400")
     canvas = tk.Canvas(options_win)
     scrollbar = tk.Scrollbar(options_win, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
@@ -16,8 +16,15 @@ def open_options():
     canvas.bind("<Configure>", resize_canvas)
     canvas.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
+    def _on_mousewheel(event):
+        try:
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        except tk.TclError:
+            pass
+    canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+    canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
     info_text = tk.Text(scrollable_frame, wrap=tk.WORD, height=5)
-    info_text.insert("1.0", "You may select the language you want to be definitely included in the randomizer. To undo selection, just click the reset button at the bottom.")
+    info_text.insert("1.0", "You may select the language you want to be definitely included in the randomizer. To undo selection, just reopen the options window and apply changes without anything selected.\n\nEverything will be unselected after reopening!")
     info_text.config(state="disabled")
     info_text.pack(padx=10, pady=(10, 10), fill="x")
     info_label = tk.Label(scrollable_frame, text="Select forced languages:")
