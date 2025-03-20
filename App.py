@@ -86,7 +86,14 @@ def randomizer(text, queue):
     selected_language_code = target_languages[selected_language_index]
 
     for i in range(setLoopTimes - 1):
-        random_value = rdm.randint(1, len(supported_languages))
+        # preventing double language use after one another (e.g. maltese -> maltese)
+        if usedLanguages:
+            last_language = usedLanguages[-1]
+            candidate_indices = [i for i in range(1, len(supported_languages) + 1)
+                                 if supported_languages[i - 1] != last_language]
+            random_value = rdm.choice(candidate_indices)
+        else:
+            random_value = rdm.randint(1, len(supported_languages))
         text = language(text, random_value)
         print(text)
         queue.put(100 * (i + 1) / (setLoopTimes - 1) if setLoopTimes > 1 else 100)
