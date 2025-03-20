@@ -6,6 +6,40 @@ from translator import randomizer, supported_languages
 from options import open_options
 from help_window import open_help
 
+import tkinter as tk
+from tkinter import ttk
+
+class AutocompleteCombobox(ttk.Combobox):
+    def set_completion_list(self, completion_list):
+        self._completion_list = completion_list
+        self['values'] = self._completion_list
+
+    def autocomplete(self, event=None):
+        if event.keysym in ("BackSpace", "Left", "Right", "Return", "Escape"):
+            return
+        typed = self.get()
+        if typed == "":
+            filtered = self._completion_list
+        else:
+            filtered = [item for item in self._completion_list if item.lower().startswith(typed.lower())]
+        self['values'] = filtered
+        self.set(typed)
+        self.icursor(tk.END)
+        self.selection_clear()
+        if filtered:
+            try:
+                self.current(-1)
+            except tk.TclError:
+                pass
+        self.after(10, self.open_dropdown)
+
+    def open_dropdown(self):
+        try:
+            self.tk.call('ttk::combobox::popdown', self)
+        except tk.TclError:
+            pass
+
+
 def create_main_gui(root):
     progress_queue = queue.Queue()
     top_frame = tk.Frame(root)
@@ -31,10 +65,14 @@ def create_main_gui(root):
     label = tk.Label(left_frame, text="Select target language:")
     label.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
+
     language_selector = tk.StringVar(left_frame)
     language_selector.set(supported_languages[0])
-    language_dropdown = ttk.Combobox(left_frame, textvariable=language_selector, values=supported_languages, state="readonly")
+    language_dropdown = AutocompleteCombobox(left_frame, textvariable=language_selector, state="normal")
+    language_dropdown.set_completion_list(supported_languages)
     language_dropdown.grid(row=count, column=0, sticky="ew")
+    language_dropdown.bind('<KeyRelease>', language_dropdown.autocomplete)
+
     options_button = tk.Button(left_frame, text="Options", command=open_options)
     options_button.grid(row=count, column=1, sticky="ew")
     count += 1
