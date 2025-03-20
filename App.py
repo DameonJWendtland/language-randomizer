@@ -96,22 +96,24 @@ def randomizer(text, queue):
     out_label = tk.Label(root, text="Output:")
     out_label.grid(row=0, column=1, sticky="ew")
 
-    output_text = tk.Text(root)
+    output_text = tk.Text(root, wrap=tk.WORD)
     output_text.grid(row=1, column=1, sticky="nsew")
     output_text.insert("1.0", text)
+    output_text.config(state="disabled")
     print(text)
     queue.put(100)
 
-    lang_chain = detectedLanguage
+    lang_chain = "Detected language: ("+detectedLanguage+")"
     for lang in usedLanguages:
         lang_chain += " -> " + lang
 
     lang_used_label = tk.Label(root, text="Used Languages: \n")
     lang_used_label.grid(row=2, column=1, sticky="ew")
 
-    detectedLanguagesDisplay = tk.Text(root, height=3, width=30)
+    detectedLanguagesDisplay = tk.Text(root, wrap=tk.WORD, height=3, width=30)
     detectedLanguagesDisplay.insert("1.0", lang_chain + " -> " + selected_language_name)
     detectedLanguagesDisplay.grid(row=3, column=1, sticky="ew")
+    detectedLanguagesDisplay.config(state="disabled")
 
     usedLanguages.clear()
     detectedLanguage = ""
@@ -154,8 +156,9 @@ label = tk.Label(root, text="Input:")
 label.grid(row=count, column=0, sticky="ew")
 count += 1
 
-text_field = tk.Text(root)
+text_field = tk.Text(root, wrap=tk.WORD)
 text_field.grid(row=count, column=0, sticky="nsew")
+
 text_field.insert("1.0", "Insert your Text here...")
 count += 1
 
