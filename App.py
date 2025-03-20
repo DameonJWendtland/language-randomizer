@@ -7,7 +7,7 @@ import random as rdm
 import threading
 import queue
 
-# Erstellen einer Mapping-Dictionary, um Sprachname -> Sprachcode zu erhalten
+# Create a mapping dictionary to get language name -> language code
 language_name_to_code = {value: key for key, value in LANGUAGES.items()}
 
 supported_languages = list(LANGUAGES.values())
@@ -24,8 +24,8 @@ detectedLanguage = ""
 
 def safe_translate(text, dest_language_code, max_retries=3):
     """
-    Tranlates sentence wise. If an error occurs, the translation will be retried {{max_retries}} times.
-    If translation fails the original sentence is being used.
+    Translates by sentence. If an error occurs, it retries up to {{max_retries}} times.
+    If translation fails, the original sentence is used.
     """
     sentences = re.split(r'(?<=[.!?])\s+', text)
     translated_sentences = []
@@ -39,13 +39,13 @@ def safe_translate(text, dest_language_code, max_retries=3):
                         translated_sentences.append(result.text)
                         break
                     else:
-                        raise ValueError("Keine Übersetzung erhalten")
+                        raise ValueError("No translation received")
                 except Exception as e:
-                    print(f"Fehler bei der Übersetzung des Satzes '{sentence}': {e}")
+                    print(f"Error while translating sentence '{sentence}': {e}")
                     retries += 1
-                    time.sleep(1)  # kurze Pause vor erneutem Versuch
+                    time.sleep(1)  # Short pause before retrying
                     if retries == max_retries:
-                        print(f"Übersetzung von Satz '{sentence}' fehlgeschlagen. Ursprünglicher Satz wird verwendet.")
+                        print(f"Translation of sentence '{sentence}' failed. Original sentence will be used.")
                         translated_sentences.append(sentence)
         else:
             translated_sentences.append(sentence)
@@ -64,7 +64,7 @@ def language(text, value):
                 translated_text = safe_translate(text, dest_language_code)
                 return translated_text
             except Exception as e:
-                print(f"Fehler aufgetreten: {e}, versuche es erneut...")
+                print(f"Error occurred: {e}, retrying...")
                 global timeOutCounter
                 timeOutCounter += 1
                 retry_label = tk.Label(root, text=("Total Time Outs: " + str(timeOutCounter)))
@@ -79,14 +79,14 @@ def randomizer(text, queue):
     global detectedLanguage
 
     detectedLanguage = translator.detect(text).lang
-    detectedLanguage = LANGUAGES.get(detectedLanguage, "Unbekannt")
+    detectedLanguage = LANGUAGES.get(detectedLanguage, "Unknown")
 
     selected_language_name = language_selector.get()
     selected_language_index = supported_languages.index(selected_language_name)
     selected_language_code = target_languages[selected_language_index]
 
     for i in range(setLoopTimes - 1):
-        # preventing double language use after one another (e.g. maltese -> maltese)
+        # Prevent immediate reuse of the same language
         if usedLanguages:
             last_language = usedLanguages[-1]
             candidate_indices = [i for i in range(1, len(supported_languages) + 1)
@@ -110,16 +110,23 @@ def randomizer(text, queue):
     print(text)
     queue.put(100)
 
-    lang_chain = "Detected language: ("+detectedLanguage+")"
+    lang_chain = "Detected language: (" + detectedLanguage + ")"
     for lang in usedLanguages:
         lang_chain += " -> " + lang
 
     lang_used_label = tk.Label(root, text="Used Languages: \n")
     lang_used_label.grid(row=2, column=1, sticky="ew")
 
-    detectedLanguagesDisplay = tk.Text(root, wrap=tk.WORD, height=3, width=30)
+    # Create a frame for the text field and scrollbar
+    lang_frame = tk.Frame(root)
+    lang_frame.grid(row=3, column=1, sticky="nsew")
+    detectedLanguagesDisplay = tk.Text(lang_frame, wrap=tk.WORD, height=3, width=30)
+    detectedLanguagesDisplay.pack(side="left", fill="both", expand=True)
+    scrollbar = tk.Scrollbar(lang_frame, command=detectedLanguagesDisplay.yview)
+    scrollbar.pack(side="right", fill="y")
+    detectedLanguagesDisplay.config(yscrollcommand=scrollbar.set)
+
     detectedLanguagesDisplay.insert("1.0", lang_chain + " -> " + selected_language_name)
-    detectedLanguagesDisplay.grid(row=3, column=1, sticky="ew")
     detectedLanguagesDisplay.config(state="disabled")
 
     usedLanguages.clear()
@@ -165,8 +172,7 @@ count += 1
 
 text_field = tk.Text(root, wrap=tk.WORD)
 text_field.grid(row=count, column=0, sticky="nsew")
-
-text_field.insert("1.0", "Insert your Text here...")
+text_field.insert("1.0", "Insert your text here...")
 count += 1
 
 label = tk.Label(root, text="Select target language:")
@@ -175,8 +181,9 @@ count += 1
 
 language_selector = tk.StringVar(root)
 language_selector.set(supported_languages[0])
-language_dropdown = tk.OptionMenu(root, language_selector, *supported_languages)
+language_dropdown = ttk.Combobox(root, textvariable=language_selector, values=supported_languages)
 language_dropdown.grid(row=count, column=0, sticky="ew")
+language_dropdown.config(state="readonly")
 count += 1
 
 label = tk.Label(root, text="How many times it shall be translated:")
@@ -201,11 +208,6 @@ label.grid(row=count, column=0, sticky="ew")
 count += 1
 
 root.grid_columnconfigure(0, weight=1)
-root.grid_rowconfigure(0, weight=0)
 root.grid_rowconfigure(1, weight=1)
-root.grid_rowconfigure(2, weight=0)
-root.grid_rowconfigure(3, weight=0)
-root.grid_rowconfigure(4, weight=0)
-root.grid_rowconfigure(5, weight=0)
 
 root.mainloop()
