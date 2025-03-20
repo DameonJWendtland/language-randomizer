@@ -6,6 +6,7 @@ from translator import randomizer, supported_languages
 from options import open_options
 from help_window import open_help
 
+
 class AutocompleteCombobox(ttk.Combobox):
     def set_completion_list(self, completion_list):
         self._completion_list = completion_list
@@ -36,12 +37,20 @@ class AutocompleteCombobox(ttk.Combobox):
         except tk.TclError:
             pass
 
+
 def create_main_gui(root):
+    style = ttk.Style()
+    style.theme_use('default')
+    style.configure("Valid.TCombobox", fieldbackground="white")
+    style.configure("Invalid.TCombobox", fieldbackground="lightcoral")
+    style.map("Invalid.TCombobox",
+              fieldbackground=[("!disabled", "lightcoral"), ("active", "lightcoral")])
+
     progress_queue = queue.Queue()
     top_frame = tk.Frame(root)
     top_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
     top_frame.grid_columnconfigure(0, weight=1)
-    help_button = tk.Button(top_frame, text="?", command=open_help, font=("Helvetica", 14, "bold"), width=3, height=1)
+    help_button = tk.Button(top_frame, text="❓", command=open_help, font=("Helvetica", 14, "bold"), width=3, height=1)
     help_button.pack(side="right", padx=5, pady=5)
 
     left_frame = tk.Frame(root)
@@ -80,6 +89,7 @@ def create_main_gui(root):
 
     iteration_var = tk.StringVar(left_frame)
     iteration_var.set("")
+
     def validate_input(new_value):
         if new_value == "":
             return True
@@ -89,6 +99,7 @@ def create_main_gui(root):
             return value > 0
         except ValueError:
             return False
+
     validate_command = (left_frame.register(validate_input), '%P')
     number_entry = tk.Entry(left_frame, textvariable=iteration_var, validate="key", validatecommand=validate_command)
     number_entry.grid(row=count, column=0, columnspan=2, sticky="ew")
@@ -103,13 +114,24 @@ def create_main_gui(root):
     def check_validity(*args):
         current_language = language_selector.get()
         iter_text = iteration_var.get().strip()
+        if current_language == "":
+            language_dropdown.configure(style="Invalid.TCombobox")
+            language_dropdown['values'] = supported_languages
+        elif current_language not in supported_languages:
+            language_dropdown.configure(style="Invalid.TCombobox")
+        else:
+            language_dropdown.configure(style="Valid.TCombobox")
+        if iter_text == "":
+            number_entry.config(bg="lightcoral")
+        else:
+            number_entry.config(bg="white")
         if current_language == "" or current_language not in supported_languages or iter_text == "":
             translate_button.config(state="disabled")
         else:
             translate_button.config(state="normal")
+
     language_selector.trace("w", check_validity)
     iteration_var.trace("w", check_validity)
-
     check_validity()
 
     left_frame.grid_columnconfigure(0, weight=1)
@@ -139,7 +161,8 @@ def create_main_gui(root):
             threading.Thread(target=run_randomizer, args=(entered_text,)).start()
 
     def run_randomizer(text):
-        result_text, lang_chain, selected_language_name = randomizer(text, language_selector, right_frame, progress_queue)
+        result_text, lang_chain, selected_language_name = randomizer(text, language_selector, right_frame,
+                                                                     progress_queue)
         for widget in right_frame.winfo_children():
             widget.destroy()
         out_label = tk.Label(right_frame, text="Output:")
