@@ -39,37 +39,39 @@ class AutocompleteCombobox(ttk.Combobox):
 
 
 def create_main_gui(root):
+    # Style-Anpassung für den Sprachselector (ggf. durch ThemedTk bereits gesetzt)
     style = ttk.Style()
-    style.theme_use('default')
     style.configure("Valid.TCombobox", fieldbackground="white")
     style.configure("Invalid.TCombobox", fieldbackground="lightcoral")
     style.map("Invalid.TCombobox",
               fieldbackground=[("!disabled", "lightcoral"), ("active", "lightcoral")])
 
     progress_queue = queue.Queue()
-    top_frame = tk.Frame(root)
+
+    top_frame = ttk.Frame(root)
     top_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
-    top_frame.grid_columnconfigure(0, weight=1)
-    help_button = tk.Button(top_frame, text="❓", command=open_help, font=("Helvetica", 14, "bold"), width=3, height=1)
+    top_frame.columnconfigure(0, weight=1)
+    help_button = ttk.Button(top_frame, text="❓", command=open_help)
+    help_button.config(width=3)
     help_button.pack(side="right", padx=5, pady=5)
 
-    left_frame = tk.Frame(root)
+    left_frame = ttk.Frame(root)
     left_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
-    right_frame = tk.Frame(root)
+    right_frame = ttk.Frame(root)
     right_frame.grid(row=1, column=1, sticky="nsew", padx=5, pady=5)
-    root.grid_columnconfigure(0, weight=1)
-    root.grid_columnconfigure(1, weight=1)
-    root.grid_rowconfigure(1, weight=1)
+    root.columnconfigure(0, weight=1)
+    root.columnconfigure(1, weight=1)
+    root.rowconfigure(1, weight=1)
 
     count = 0
-    label = tk.Label(left_frame, text="Input:")
+    label = ttk.Label(left_frame, text="Input:")
     label.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
     text_field = tk.Text(left_frame, wrap=tk.WORD)
     text_field.grid(row=count, column=0, columnspan=2, sticky="nsew")
     text_field.insert("1.0", "Insert your Text here...")
     count += 1
-    label = tk.Label(left_frame, text="Select target language:")
+    label = ttk.Label(left_frame, text="Select target language:")
     label.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
 
@@ -80,10 +82,10 @@ def create_main_gui(root):
     language_dropdown.grid(row=count, column=0, sticky="ew")
     language_dropdown.bind('<KeyRelease>', language_dropdown.autocomplete)
 
-    options_button = tk.Button(left_frame, text="Options", command=open_options)
+    options_button = ttk.Button(left_frame, text="Options", command=open_options)
     options_button.grid(row=count, column=1, sticky="ew")
     count += 1
-    label = tk.Label(left_frame, text="Randomized iterations:")
+    label = ttk.Label(left_frame, text="Randomized iterations:")
     label.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
 
@@ -107,10 +109,11 @@ def create_main_gui(root):
     progress_bar = ttk.Progressbar(left_frame, orient="horizontal", length=200, mode="determinate")
     progress_bar.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
-    translate_button = tk.Button(left_frame, text="Translate Text", command=lambda: on_button_click())
+    translate_button = ttk.Button(left_frame, text="Translate Text", command=lambda: on_button_click())
     translate_button.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
 
+    # Überprüfe die Gültigkeit beider Felder: Sprache und Iterationen
     def check_validity(*args):
         current_language = language_selector.get()
         iter_text = iteration_var.get().strip()
@@ -134,12 +137,12 @@ def create_main_gui(root):
     iteration_var.trace("w", check_validity)
     check_validity()
 
-    left_frame.grid_columnconfigure(0, weight=1)
-    left_frame.grid_columnconfigure(1, weight=1)
-    left_frame.grid_rowconfigure(1, weight=1)
-    right_frame.grid_columnconfigure(0, weight=1)
-    right_frame.grid_rowconfigure(1, weight=1)
-    right_frame.grid_rowconfigure(3, weight=1)
+    left_frame.columnconfigure(0, weight=1)
+    left_frame.columnconfigure(1, weight=1)
+    left_frame.rowconfigure(1, weight=1)
+    right_frame.columnconfigure(0, weight=1)
+    right_frame.rowconfigure(1, weight=1)
+    right_frame.rowconfigure(3, weight=1)
 
     def update_progress_bar(value):
         progress_bar['value'] = value
@@ -165,19 +168,19 @@ def create_main_gui(root):
                                                                      progress_queue)
         for widget in right_frame.winfo_children():
             widget.destroy()
-        out_label = tk.Label(right_frame, text="Output:")
+        out_label = ttk.Label(right_frame, text="Output:")
         out_label.grid(row=0, column=0, sticky="ew")
         output_text = tk.Text(right_frame, wrap=tk.WORD)
         output_text.grid(row=1, column=0, sticky="nsew")
         output_text.insert("1.0", result_text)
         output_text.config(state="disabled")
-        lang_used_label = tk.Label(right_frame, text="Used Languages: \n")
+        lang_used_label = ttk.Label(right_frame, text="Used Languages: \n")
         lang_used_label.grid(row=2, column=0, sticky="ew")
-        lang_frame = tk.Frame(right_frame)
+        lang_frame = ttk.Frame(right_frame)
         lang_frame.grid(row=3, column=0, sticky="nsew")
         detectedLanguagesDisplay = tk.Text(lang_frame, wrap=tk.WORD, height=3, width=30)
         detectedLanguagesDisplay.pack(side="left", fill="both", expand=True)
-        scrollbar = tk.Scrollbar(lang_frame, command=detectedLanguagesDisplay.yview)
+        scrollbar = ttk.Scrollbar(lang_frame, command=detectedLanguagesDisplay.yview)
         scrollbar.pack(side="right", fill="y")
         detectedLanguagesDisplay.config(yscrollcommand=scrollbar.set)
         detectedLanguagesDisplay.insert("1.0", lang_chain + " -> " + selected_language_name)
@@ -186,7 +189,7 @@ def create_main_gui(root):
 
     check_queue()
 
-    bottom_frame = tk.Frame(root)
+    bottom_frame = ttk.Frame(root)
     bottom_frame.grid(row=2, column=0, columnspan=2, sticky="ew")
-    credit_label = tk.Label(bottom_frame, text="by D. J. Wendtland", font=("Helvetica", 8), fg="grey")
+    credit_label = ttk.Label(bottom_frame, text="by D. J. Wendtland", font=("Helvetica", 8), foreground="grey")
     credit_label.pack(side="left", padx=5, pady=5)

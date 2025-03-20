@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from translator import supported_languages, forcedLanguages
 
 def open_options():
@@ -8,7 +9,7 @@ def open_options():
     canvas = tk.Canvas(options_win)
     scrollbar = tk.Scrollbar(options_win, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
-    scrollable_frame = tk.Frame(canvas)
+    scrollable_frame = ttk.Frame(canvas)
     scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
     window_item = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
     def resize_canvas(event):
@@ -27,15 +28,15 @@ def open_options():
     info_text.insert("1.0", "You may select the language you want to be definitely included in the randomizer. To undo selection, just reopen the options window and apply changes without anything selected.\n\nEverything will be unselected after reopening!")
     info_text.config(state="disabled")
     info_text.pack(padx=10, pady=(10, 10), fill="x")
-    info_label = tk.Label(scrollable_frame, text="Select forced languages:")
+    info_label = ttk.Label(scrollable_frame, text="Select forced languages:")
     info_label.pack(padx=10, pady=(0, 10), fill="x")
     forced_vars = {}
-    frame = tk.Frame(scrollable_frame)
+    frame = ttk.Frame(scrollable_frame)
     frame.pack(padx=10, pady=10, fill="x")
     for i, lang in enumerate(supported_languages):
         var = tk.BooleanVar(value=(lang in forcedLanguages))
         forced_vars[lang] = var
-        chk = tk.Checkbutton(frame, text=lang, variable=var)
+        chk = ttk.Checkbutton(frame, text=lang, variable=var)
         chk.grid(row=i // 5, column=i % 5, sticky="w", padx=5, pady=5)
     def apply_options():
         global forcedLanguages
@@ -48,9 +49,9 @@ def open_options():
     def reset_options():
         for var in forced_vars.values():
             var.set(False)
-    btn_frame = tk.Frame(scrollable_frame)
+    btn_frame = ttk.Frame(scrollable_frame)
     btn_frame.pack(pady=10)
-    reset_btn = tk.Button(btn_frame, text="Reset", command=reset_options)
+    reset_btn = ttk.Button(btn_frame, text="Reset", command=reset_options)
     reset_btn.pack(side="left", padx=(0, 10))
-    apply_btn = tk.Button(btn_frame, text="Apply", command=apply_options)
+    apply_btn = ttk.Button(btn_frame, text="Apply", command=apply_options)
     apply_btn.pack(side="left")
