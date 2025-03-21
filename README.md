@@ -31,7 +31,7 @@ language_randomizer/
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/yourusername/language_randomizer.git
+   git clone https://github.com/DameonJWendtland/language_randomizer.git
    cd language_randomizer
    ```
 
