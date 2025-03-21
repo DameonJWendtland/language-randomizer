@@ -193,48 +193,41 @@ def create_main_gui(root):
     def show_translation_steps():
         steps_win = tk.Toplevel()
         steps_win.title("Translation Steps")
-        steps_win.geometry("760x400")
+        steps_win.geometry("600x400")
 
         canvas = tk.Canvas(steps_win)
         canvas.grid(row=0, column=0, sticky="nsew")
-
         scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=canvas.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        steps_win.grid_rowconfigure(0, weight=1)
-        steps_win.grid_columnconfigure(0, weight=1)
-
         scrollable_frame = ttk.Frame(canvas)
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-
-        def on_frame_configure(event):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-
-        scrollable_frame.bind("<Configure>", on_frame_configure)
+        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
         def _on_mousewheel(event):
-            # Für Windows (event.delta in Vielfachen von 120)
-            canvas.yview_scroll(-1 * int(event.delta / 120), "units")
+            try:
+                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            except tk.TclError:
+                pass
 
-        canvas.bind_all("<MouseWheel>", _on_mousewheel)
-        canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))
-        canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))
+        canvas.bind("<MouseWheel>", _on_mousewheel)
 
         steps = translator.get_translation_steps()
         if not steps:
-            label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("Helvetica", 12))
-            label.pack(pady=10)
+            no_label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("Helvetica", 12))
+            no_label.pack(padx=10, pady=10)
         else:
             for idx, (lang, step_text) in enumerate(steps, 1):
-                step_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):")
-                step_label.pack(anchor="w", padx=10, pady=(10, 0))
-                step_text_widget = tk.Text(scrollable_frame, wrap="word", font=("Helvetica", 12), height=4)
-                step_text_widget.pack(fill="x", padx=10, pady=(0, 10))
-                step_text_widget.insert("1.0", step_text)
-                step_text_widget.config(state="disabled")
+                lang_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):", font=("Helvetica", 12, "bold"))
+                lang_label.pack(anchor="w", padx=10, pady=(10, 2))
+                translation_text = tk.Text(scrollable_frame, wrap="word", font=("Helvetica", 12), height=4)
+                translation_text.pack(fill="x", padx=10, pady=(0, 10))
+                translation_text.insert("1.0", step_text)
+                translation_text.configure(state="disabled")
 
-        canvas.focus_set()
+        steps_win.grid_rowconfigure(0, weight=1)
+        steps_win.grid_columnconfigure(0, weight=1)
 
     check_queue()
 
