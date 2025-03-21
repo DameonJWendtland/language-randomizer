@@ -6,6 +6,7 @@ import translator
 from translator import randomizer, supported_languages, get_translation_steps
 from options import open_options
 from help_window import open_help
+from show_steps import show_translation_steps
 
 
 class AutocompleteCombobox(ttk.Combobox):
@@ -190,44 +191,8 @@ def create_main_gui(root):
         detectedLanguagesDisplay.config(state="disabled")
         root.after(0, lambda: translate_button.config(state="normal"))
 
-    def show_translation_steps():
-        steps_win = tk.Toplevel()
-        steps_win.title("Translation Steps")
-        steps_win.geometry("760x400")
-
-        canvas = tk.Canvas(steps_win)
-        canvas.grid(row=0, column=0, sticky="nsew")
-        scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=canvas.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        scrollable_frame = ttk.Frame(canvas)
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-
-        def _on_mousewheel(event):
-            try:
-                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-            except tk.TclError:
-                pass
-
-        canvas.bind("<MouseWheel>", _on_mousewheel)
-
-        steps = translator.get_translation_steps()
-        if not steps:
-            no_label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("Helvetica", 12))
-            no_label.pack(padx=10, pady=10)
-        else:
-            for idx, (lang, step_text) in enumerate(steps, 1):
-                lang_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):")
-                lang_label.pack(anchor="w", padx=10, pady=(10, 2))
-                translation_text = tk.Text(scrollable_frame, wrap="word", font=("Helvetica", 12), height=4)
-                translation_text.pack(fill="x", padx=10, pady=(0, 10))
-                translation_text.insert("1.0", step_text)
-                translation_text.configure(state="disabled")
-
-        steps_win.grid_rowconfigure(0, weight=1)
-        steps_win.grid_columnconfigure(0, weight=1)
+    show_btn = ttk.Button(right_frame, text="Show Steps", command=show_translation_steps)
+    show_btn.grid(row=2, column=0, sticky="e", padx=5)
 
     check_queue()
 
