@@ -19,6 +19,11 @@ The Language Randomizer demonstrates how meaning can shift when text is passed t
 ### In v1.1
 
 - **Themes:** Use your own `ThemedTK` theme in the code in [App.py](https://github.com/DameonJWendtland/language-randomizer/blob/v1.1/App.py)
+```py
+root = ThemedTk(theme="custom_theme")
+```
+You may look up [List of ttk Themes](https://wiki.tcl-lang.org/page/List+of+ttk+Themes)
+  
 - **Secure entry:** Now it is requied to select a *valid* target language and to type in a positive integer into the `randomizer iterations` field.
 - **Visuals:** The `translate text` button is now disabled until all requirements are fulfilled of the secure entry. Fields, which are invalid are changing their `background-color` to `lightcoral`.
 - **Filter languages:** Type into the selector field of the target language to filter for languages. To unselect the filter: clear the text and open the dropdown.
