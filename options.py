@@ -49,8 +49,13 @@ def open_options():
     def reset_options():
         for var in forced_vars.values():
             var.set(False)
+    def select_all_options():
+        for var in forced_vars.values():
+            var.set(True)
     btn_frame = ttk.Frame(scrollable_frame)
     btn_frame.pack(pady=10)
+    select_all_btn = ttk.Button(btn_frame, text="Select All", command=select_all_options)
+    select_all_btn.pack(side="left", padx=(0, 10))
     reset_btn = ttk.Button(btn_frame, text="Reset", command=reset_options)
     reset_btn.pack(side="left", padx=(0, 10))
     apply_btn = ttk.Button(btn_frame, text="Apply", command=apply_options)
