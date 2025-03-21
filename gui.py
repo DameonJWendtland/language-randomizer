@@ -140,9 +140,10 @@ def create_main_gui(root):
     left_frame.columnconfigure(0, weight=1)
     left_frame.columnconfigure(1, weight=1)
     left_frame.rowconfigure(1, weight=1)
-    right_frame.columnconfigure(0, weight=1)
-    right_frame.rowconfigure(1, weight=1)
-    right_frame.rowconfigure(3, weight=1)
+
+    output_frame = ttk.Frame(right_frame)
+    output_frame.grid(row=0, column=0, sticky="nsew")
+    right_frame.rowconfigure(0, weight=1)
 
     def update_progress_bar(value):
         progress_bar['value'] = value
@@ -166,22 +167,24 @@ def create_main_gui(root):
     def run_randomizer(text):
         result_text, lang_chain, selected_language_name = randomizer(text, language_selector, right_frame,
                                                                      progress_queue)
-        for widget in right_frame.winfo_children():
+        for widget in output_frame.winfo_children():
             widget.destroy()
-        out_label = ttk.Label(right_frame, text="Output:")
-        out_label.grid(row=0, column=0, sticky="ew")
-        output_text = tk.Text(right_frame, wrap=tk.WORD)
-        output_text.grid(row=1, column=0, sticky="nsew")
+
+        out_label = ttk.Label(output_frame, text="Output:")
+        out_label.grid(row=0, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+
+        output_text = tk.Text(output_frame, wrap=tk.WORD)
+        output_text.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
         output_text.insert("1.0", result_text)
         output_text.config(state="disabled")
-        lang_used_label = ttk.Label(right_frame, text="Used Languages: \n")
-        lang_used_label.grid(row=2, column=0, sticky="ew")
 
-        show_btn = ttk.Button(right_frame, text="Show Steps", command=show_translation_steps)
-        show_btn.grid(row=2, column=0, sticky="e", padx=5)
+        lang_used_label = ttk.Label(output_frame, text="Used Languages: \n", font=("Helvetica", 10))
+        lang_used_label.grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        show_steps_btn = ttk.Button(output_frame, text="Show Steps", command=show_translation_steps)
+        show_steps_btn.grid(row=2, column=1, sticky="e", padx=5, pady=5)
 
-        lang_frame = ttk.Frame(right_frame)
-        lang_frame.grid(row=3, column=0, columnspan=2, sticky="nsew")
+        lang_frame = ttk.Frame(output_frame)
+        lang_frame.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
         detectedLanguagesDisplay = tk.Text(lang_frame, wrap=tk.WORD, height=3, width=30)
         detectedLanguagesDisplay.pack(side="left", fill="both", expand=True)
         scrollbar = ttk.Scrollbar(lang_frame, command=detectedLanguagesDisplay.yview)
@@ -189,10 +192,8 @@ def create_main_gui(root):
         detectedLanguagesDisplay.config(yscrollcommand=scrollbar.set)
         detectedLanguagesDisplay.insert("1.0", lang_chain + "→\nTarget language:  [" + selected_language_name + "]")
         detectedLanguagesDisplay.config(state="disabled")
-        root.after(0, lambda: translate_button.config(state="normal"))
 
-    show_btn = ttk.Button(right_frame, text="Show Steps", command=show_translation_steps)
-    show_btn.grid(row=2, column=0, sticky="e", padx=5)
+        root.after(0, lambda: translate_button.config(state="normal"))
 
     check_queue()
 
