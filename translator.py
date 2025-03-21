@@ -114,9 +114,9 @@ def randomizer(text, language_selector, right_frame, progress_queue):
 
     text = safe_translate(text, selected_language_code)
     progress_queue.put(100)
-    lang_chain = "Detected language: [" + detectedLanguage + "]"
+    lang_chain = "Detected language: [" + detectedLanguage + "]\n"
     for lang in usedLanguages:
-        lang_chain += " -> " + lang
+        lang_chain += "→ " + lang + " "
     usedLanguages = []
     detectedLanguage = ""
 

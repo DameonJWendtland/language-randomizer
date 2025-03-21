@@ -39,7 +39,6 @@ class AutocompleteCombobox(ttk.Combobox):
 
 
 def create_main_gui(root):
-    # Style-Anpassung für den Sprachselector (ggf. durch ThemedTk bereits gesetzt)
     style = ttk.Style()
     style.configure("Valid.TCombobox", fieldbackground="white")
     style.configure("Invalid.TCombobox", fieldbackground="lightcoral")
@@ -113,7 +112,6 @@ def create_main_gui(root):
     translate_button.grid(row=count, column=0, columnspan=2, sticky="ew")
     count += 1
 
-    # Überprüfe die Gültigkeit beider Felder: Sprache und Iterationen
     def check_validity(*args):
         current_language = language_selector.get()
         iter_text = iteration_var.get().strip()
@@ -183,7 +181,7 @@ def create_main_gui(root):
         scrollbar = ttk.Scrollbar(lang_frame, command=detectedLanguagesDisplay.yview)
         scrollbar.pack(side="right", fill="y")
         detectedLanguagesDisplay.config(yscrollcommand=scrollbar.set)
-        detectedLanguagesDisplay.insert("1.0", lang_chain + " -> " + selected_language_name)
+        detectedLanguagesDisplay.insert("1.0", lang_chain + "→\nTarget language:  [" + selected_language_name + "]")
         detectedLanguagesDisplay.config(state="disabled")
         root.after(0, lambda: translate_button.config(state="normal"))
 
