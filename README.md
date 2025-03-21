@@ -35,6 +35,7 @@ language_randomizer/
 ├── translator.py    # Contains functions for translation logic and language randomization
 ├── gui.py           # Manages the graphical user interface
 ├── options.py       # Implements the options dialog for forced languages
+├── show_steps.py    # Implements the translation steps dialogue with each language which was iterated through
 └── help_window.py   # Implements the help dialog window
 ```
 
