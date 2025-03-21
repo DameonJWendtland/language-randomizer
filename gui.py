@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
-import threading, queue
+import threading
+import queue
 import translator
-from translator import randomizer, supported_languages
+from translator import randomizer, supported_languages, get_translation_steps
 from options import open_options
 from help_window import open_help
 
@@ -174,8 +175,12 @@ def create_main_gui(root):
         output_text.config(state="disabled")
         lang_used_label = ttk.Label(right_frame, text="Used Languages: \n")
         lang_used_label.grid(row=2, column=0, sticky="ew")
+
+        show_btn = ttk.Button(right_frame, text="Show Steps", command=show_translation_steps)
+        show_btn.grid(row=2, column=0, sticky="e", padx=5)
+
         lang_frame = ttk.Frame(right_frame)
-        lang_frame.grid(row=3, column=0, sticky="nsew")
+        lang_frame.grid(row=3, column=0, columnspan=2, sticky="nsew")
         detectedLanguagesDisplay = tk.Text(lang_frame, wrap=tk.WORD, height=3, width=30)
         detectedLanguagesDisplay.pack(side="left", fill="both", expand=True)
         scrollbar = ttk.Scrollbar(lang_frame, command=detectedLanguagesDisplay.yview)
@@ -184,6 +189,35 @@ def create_main_gui(root):
         detectedLanguagesDisplay.insert("1.0", lang_chain + "→\nTarget language:  [" + selected_language_name + "]")
         detectedLanguagesDisplay.config(state="disabled")
         root.after(0, lambda: translate_button.config(state="normal"))
+
+    def show_translation_steps():
+        steps_win = tk.Toplevel()
+        steps_win.title("Translation Steps")
+        steps_win.geometry("600x400")
+
+        canvas = tk.Canvas(steps_win)
+        scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        scrollable_frame = ttk.Frame(canvas)
+        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        steps = translator.get_translation_steps()
+
+        if not steps:
+            ttk.Label(scrollable_frame, text="No steps recorded.").pack(pady=10)
+            return
+
+        for idx, (lang, text) in enumerate(steps, 1):
+            frame = ttk.Frame(scrollable_frame)
+            frame.pack(fill="x", padx=10, pady=5)
+
+            ttk.Label(frame, text=f"Step {idx} ({lang}):", width=30).pack(side="left")
+            ttk.Label(frame, text=text, wraplength=450).pack(side="left", fill="x", expand=True)
 
     check_queue()
 

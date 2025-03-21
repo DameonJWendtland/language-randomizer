@@ -11,8 +11,10 @@ target_languages = list(LANGUAGES.keys())
 timeOutCounter = 0
 usedLanguages = []
 detectedLanguage = ""
-forcedLanguages = [] #options.py
+forcedLanguages = []  # options.py
 setLoopTimes = 1
+
+translation_steps = []
 
 
 def safe_translate(text, dest_language_code, max_retries=3):
@@ -42,7 +44,7 @@ def safe_translate(text, dest_language_code, max_retries=3):
 
 
 def language(text, value):
-    global timeOutCounter, usedLanguages
+    global timeOutCounter, usedLanguages, translation_steps
     max_retries = 3
     retries = 0
     if 0 < value <= len(supported_languages):
@@ -52,7 +54,7 @@ def language(text, value):
         while retries < max_retries:
             try:
                 translated_text = safe_translate(text, dest_language_code)
-
+                translation_steps.append((dest_language_name, translated_text))
                 return translated_text
             except Exception as e:
                 print(f"Error occurred: {e}, trying again...")
@@ -63,8 +65,10 @@ def language(text, value):
     else:
         return text
 
+
 def randomizer(text, language_selector, right_frame, progress_queue):
-    global detectedLanguage, usedLanguages, forcedLanguages, setLoopTimes
+    global detectedLanguage, usedLanguages, forcedLanguages, setLoopTimes, translation_steps
+    translation_steps = []
     detected_lang_code = translator.detect(text).lang
     detectedLanguage = LANGUAGES.get(detected_lang_code, "Unknown")
 
@@ -120,6 +124,11 @@ def randomizer(text, language_selector, right_frame, progress_queue):
     usedLanguages = []
     detectedLanguage = ""
 
+    translation_steps.append((selected_language_name, text))
+
     print("END (" + selected_language_name + "): " + text)
 
     return text, lang_chain, selected_language_name
+
+def get_translation_steps():
+    return translation_steps
