@@ -6,6 +6,7 @@ A fun and experimental tool that randomly translates text through multiple langu
 
 The Language Randomizer demonstrates how meaning can shift when text is passed through multiple languages in a "telephone game" style translation chain. You can force specific languages into the chain and control the number of translation iterations.
 
+
 ## Features
 
 - **Randomized Translation Chain:** Translates input text through a series of random languages.
@@ -15,6 +16,12 @@ The Language Randomizer demonstrates how meaning can shift when text is passed t
 - **Help & Options Dialogs:** Easy access to instructions and language options.
 - **Progress Tracking:** Visual progress bar indicating the translation process.
 
+### In v1.1
+
+- **Themes:** Use your own `ThemedTK` theme in the code in [App.py](https://github.com/DameonJWendtland/language-randomizer/blob/v1.1/App.py)
+- **Secure entry:** Now it is requied to select a *valid* target language and to type in a positive integer into the `randomizer iterations` field.
+- **Visuals:** The `translate text` button is now disabled until all requirements are fulfilled of the secure entry. Fields, which are invalid are changing their `background-color` to `lightcoral`.
+- **Filter languages:** Type into the selector field of the target language to filter for languages. To unselect the filter: clear the text and open the dropdown.
 ## Folder Structure
 
 ```
