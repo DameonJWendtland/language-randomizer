@@ -196,9 +196,10 @@ def create_main_gui(root):
         steps_win.geometry("600x400")
 
         text_widget = tk.Text(steps_win, wrap="word")
-        text_widget.pack(side="left", fill="both", expand=True)
+        text_widget.grid(row=0, column=0, sticky="nsew")
+
         scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=text_widget.yview)
-        scrollbar.pack(side="right", fill="y")
+        scrollbar.grid(row=0, column=1, sticky="ns")
         text_widget.configure(yscrollcommand=scrollbar.set)
 
         steps = translator.get_translation_steps()
@@ -208,8 +209,10 @@ def create_main_gui(root):
             for idx, (lang, step_text) in enumerate(steps, 1):
                 text_widget.insert("end", f"Step {idx} ({lang}):\n{step_text}\n\n")
 
+        steps_win.grid_rowconfigure(0, weight=1)
+        steps_win.grid_columnconfigure(0, weight=1)
 
-        text_widget.config(state="disabled")
+        text_widget.configure(state="disabled")
         text_widget.focus_set()
 
     check_queue()
