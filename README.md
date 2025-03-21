@@ -27,6 +27,8 @@ You may look up [List of ttk Themes](https://wiki.tcl-lang.org/page/List+of+ttk+
 - **Secure entry:** Now it is requied to select a *valid* target language and to type in a positive integer into the `randomizer iterations` field.
 - **Visuals:** The `translate text` button is now disabled until all requirements are fulfilled of the secure entry. Fields, which are invalid are changing their `background-color` to `lightcoral`.
 - **Filter languages:** Type into the selector field of the target language to filter for languages. To unselect the filter: clear the text and open the dropdown.
+- **Review Languages:** You can now see all languages that have been used during the iterations with each output they gave.
+- **Export:** The steps for each language with their coresponding translation can be exported as `.txt`.
 ## Folder Structure
 
 ```
