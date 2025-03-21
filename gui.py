@@ -193,33 +193,46 @@ def create_main_gui(root):
     def show_translation_steps():
         steps_win = tk.Toplevel()
         steps_win.title("Translation Steps")
-        steps_win.geometry("600x400")
+        steps_win.geometry("760x400")
 
         canvas = tk.Canvas(steps_win)
-        scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=canvas.yview)
-        canvas.configure(yscrollcommand=scrollbar.set)
         canvas.grid(row=0, column=0, sticky="nsew")
+
+        scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=canvas.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
-
-        steps_frame = ttk.Frame(canvas)
-        canvas.create_window((0, 0), window=steps_frame, anchor="nw")
-        steps_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-
-        steps = translator.get_translation_steps()
-        if not steps:
-            label = ttk.Label(steps_frame, text="No steps recorded.", font=("Helvetica", 12))
-            label.pack(pady=10)
-        else:
-            for idx, (lang, step_text) in enumerate(steps, 1):
-                step_label = ttk.Label(steps_frame, text=f"Step {idx} ({lang}):", font=("Helvetica", 12, "bold"))
-                step_label.pack(anchor="w", padx=10, pady=(10, 0))
-                step_text_widget = tk.Text(steps_frame, wrap="word", font=("Helvetica", 12), height=4)
-                step_text_widget.pack(fill="x", padx=10, pady=(0, 10))
-                step_text_widget.insert("1.0", step_text)
-                step_text_widget.config(state="disabled")
+        canvas.configure(yscrollcommand=scrollbar.set)
 
         steps_win.grid_rowconfigure(0, weight=1)
         steps_win.grid_columnconfigure(0, weight=1)
+
+        scrollable_frame = ttk.Frame(canvas)
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+
+        def on_frame_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        scrollable_frame.bind("<Configure>", on_frame_configure)
+
+        def _on_mousewheel(event):
+            # Für Windows (event.delta in Vielfachen von 120)
+            canvas.yview_scroll(-1 * int(event.delta / 120), "units")
+
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))
+        canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))
+
+        steps = translator.get_translation_steps()
+        if not steps:
+            label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("Helvetica", 12))
+            label.pack(pady=10)
+        else:
+            for idx, (lang, step_text) in enumerate(steps, 1):
+                step_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):")
+                step_label.pack(anchor="w", padx=10, pady=(10, 0))
+                step_text_widget = tk.Text(scrollable_frame, wrap="word", font=("Helvetica", 12), height=4)
+                step_text_widget.pack(fill="x", padx=10, pady=(0, 10))
+                step_text_widget.insert("1.0", step_text)
+                step_text_widget.config(state="disabled")
 
         canvas.focus_set()
 
