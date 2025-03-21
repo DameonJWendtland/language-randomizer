@@ -50,7 +50,7 @@ def create_main_gui(root):
     top_frame = ttk.Frame(root)
     top_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
     top_frame.columnconfigure(0, weight=1)
-    help_button = ttk.Button(top_frame, text="❓", command=open_help)
+    help_button = ttk.Button(top_frame, text="?", command=open_help)
     help_button.config(width=3)
     help_button.pack(side="right", padx=5, pady=5)
 
