@@ -195,25 +195,33 @@ def create_main_gui(root):
         steps_win.title("Translation Steps")
         steps_win.geometry("600x400")
 
-        text_widget = tk.Text(steps_win, wrap="word")
-        text_widget.grid(row=0, column=0, sticky="nsew")
-
-        scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=text_widget.yview)
+        canvas = tk.Canvas(steps_win)
+        scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.grid(row=0, column=0, sticky="nsew")
         scrollbar.grid(row=0, column=1, sticky="ns")
-        text_widget.configure(yscrollcommand=scrollbar.set)
+
+        steps_frame = ttk.Frame(canvas)
+        canvas.create_window((0, 0), window=steps_frame, anchor="nw")
+        steps_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
         steps = translator.get_translation_steps()
         if not steps:
-            text_widget.insert("1.0", "No steps recorded.")
+            label = ttk.Label(steps_frame, text="No steps recorded.", font=("Helvetica", 12))
+            label.pack(pady=10)
         else:
             for idx, (lang, step_text) in enumerate(steps, 1):
-                text_widget.insert("end", f"Step {idx} ({lang}):\n{step_text}\n\n")
+                step_label = ttk.Label(steps_frame, text=f"Step {idx} ({lang}):", font=("Helvetica", 12, "bold"))
+                step_label.pack(anchor="w", padx=10, pady=(10, 0))
+                step_text_widget = tk.Text(steps_frame, wrap="word", font=("Helvetica", 12), height=4)
+                step_text_widget.pack(fill="x", padx=10, pady=(0, 10))
+                step_text_widget.insert("1.0", step_text)
+                step_text_widget.config(state="disabled")
 
         steps_win.grid_rowconfigure(0, weight=1)
         steps_win.grid_columnconfigure(0, weight=1)
 
-        text_widget.configure(state="disabled")
-        text_widget.focus_set()
+        canvas.focus_set()
 
     check_queue()
 
