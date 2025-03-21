@@ -195,29 +195,22 @@ def create_main_gui(root):
         steps_win.title("Translation Steps")
         steps_win.geometry("600x400")
 
-        canvas = tk.Canvas(steps_win)
-        scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=canvas.yview)
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        scrollable_frame = ttk.Frame(canvas)
-        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.pack(side="left", fill="both", expand=True)
+        text_widget = tk.Text(steps_win, wrap="word")
+        text_widget.pack(side="left", fill="both", expand=True)
+        scrollbar = ttk.Scrollbar(steps_win, orient="vertical", command=text_widget.yview)
         scrollbar.pack(side="right", fill="y")
+        text_widget.configure(yscrollcommand=scrollbar.set)
 
         steps = translator.get_translation_steps()
-
         if not steps:
-            ttk.Label(scrollable_frame, text="No steps recorded.").pack(pady=10)
-            return
+            text_widget.insert("1.0", "No steps recorded.")
+        else:
+            for idx, (lang, step_text) in enumerate(steps, 1):
+                text_widget.insert("end", f"Step {idx} ({lang}):\n{step_text}\n\n")
 
-        for idx, (lang, text) in enumerate(steps, 1):
-            frame = ttk.Frame(scrollable_frame)
-            frame.pack(fill="x", padx=10, pady=5)
 
-            ttk.Label(frame, text=f"Step {idx} ({lang}):", width=30).pack(side="left")
-            ttk.Label(frame, text=text, wraplength=450).pack(side="left", fill="x", expand=True)
+        text_widget.config(state="disabled")
+        text_widget.focus_set()
 
     check_queue()
 
