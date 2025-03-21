@@ -193,7 +193,7 @@ def create_main_gui(root):
     def show_translation_steps():
         steps_win = tk.Toplevel()
         steps_win.title("Translation Steps")
-        steps_win.geometry("600x400")
+        steps_win.geometry("760x400")
 
         canvas = tk.Canvas(steps_win)
         canvas.grid(row=0, column=0, sticky="nsew")
@@ -219,7 +219,7 @@ def create_main_gui(root):
             no_label.pack(padx=10, pady=10)
         else:
             for idx, (lang, step_text) in enumerate(steps, 1):
-                lang_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):", font=("Helvetica", 12, "bold"))
+                lang_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):")
                 lang_label.pack(anchor="w", padx=10, pady=(10, 2))
                 translation_text = tk.Text(scrollable_frame, wrap="word", font=("Helvetica", 12), height=4)
                 translation_text.pack(fill="x", padx=10, pady=(0, 10))
