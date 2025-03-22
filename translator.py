@@ -11,8 +11,10 @@ target_languages = list(LANGUAGES.keys())
 timeOutCounter = 0
 usedLanguages = []
 detectedLanguage = ""
-forcedLanguages = [] #options.py
+forcedLanguages = []  # options.py
 setLoopTimes = 1
+
+translation_steps = []
 
 
 def safe_translate(text, dest_language_code, max_retries=3):
@@ -42,7 +44,7 @@ def safe_translate(text, dest_language_code, max_retries=3):
 
 
 def language(text, value):
-    global timeOutCounter, usedLanguages
+    global timeOutCounter, usedLanguages, translation_steps
     max_retries = 3
     retries = 0
     if 0 < value <= len(supported_languages):
@@ -52,6 +54,7 @@ def language(text, value):
         while retries < max_retries:
             try:
                 translated_text = safe_translate(text, dest_language_code)
+                translation_steps.append((dest_language_name, translated_text))
                 return translated_text
             except Exception as e:
                 print(f"Error occurred: {e}, trying again...")
@@ -64,20 +67,8 @@ def language(text, value):
 
 
 def randomizer(text, language_selector, right_frame, progress_queue):
-    """
-    Executes the translation chain.
-    Expects:
-        - text: Input text
-        - language_selector: tk.StringVar of the dropdown (target language)
-        - right_frame: Frame where the output is displayed
-        - progress_queue: Queue for updating the progress display
-    Returns:
-        - result_text: Translated final text
-        - lang_chain: String indicating the languages used
-        - selected_language_name: The originally selected target language
-    """
-    global detectedLanguage, usedLanguages, forcedLanguages, setLoopTimes
-
+    global detectedLanguage, usedLanguages, forcedLanguages, setLoopTimes, translation_steps
+    translation_steps = []
     detected_lang_code = translator.detect(text).lang
     detectedLanguage = LANGUAGES.get(detected_lang_code, "Unknown")
 
@@ -85,9 +76,17 @@ def randomizer(text, language_selector, right_frame, progress_queue):
     selected_language_index = supported_languages.index(selected_language_name)
     selected_language_code = target_languages[selected_language_index]
 
+    print("\nTarget language: " + selected_language_name)
+    if forcedLanguages:
+        print("Forced languages: " + ", ".join(forcedLanguages))
+    else:
+        print("Forced languages: none")
+
     num_steps = setLoopTimes - 1
     if forcedLanguages:
         num_steps = max(num_steps, len(forcedLanguages))
+    total_steps = num_steps + 2
+    progress_queue.put(100 * 1 / total_steps)
 
     forced_count = len(forcedLanguages)
     forced_positions = []
@@ -106,22 +105,30 @@ def randomizer(text, language_selector, right_frame, progress_queue):
         else:
             if usedLanguages:
                 last_language = usedLanguages[-1]
-                candidate_indices = [i for i in range(1, len(supported_languages) + 1) if
-                                     supported_languages[i - 1] != last_language]
+                candidate_indices = [j for j in range(1, len(supported_languages) + 1) if
+                                     supported_languages[j - 1] != last_language]
                 random_value = rdm.choice(candidate_indices)
             else:
                 random_value = rdm.randint(1, len(supported_languages))
             text = language(text, random_value)
-        print(text)
-        progress_queue.put(100 * (i + 1) / num_steps if num_steps > 0 else 100)
+
+        if usedLanguages:
+            print("RDM (" + usedLanguages[-1] + "): " + text)
+        progress_queue.put(100 * (1 + (i + 1)) / total_steps)
 
     text = safe_translate(text, selected_language_code)
-
-    lang_chain = "Detected language: [" + detectedLanguage + "]"
+    progress_queue.put(100)
+    lang_chain = "Detected language: [" + detectedLanguage + "]\n"
     for lang in usedLanguages:
-        lang_chain += " -> " + lang
-
+        lang_chain += "→ " + lang + " "
     usedLanguages = []
     detectedLanguage = ""
 
+    translation_steps.append((selected_language_name, text))
+
+    print("END (" + selected_language_name + "): " + text)
+
     return text, lang_chain, selected_language_name
+
+def get_translation_steps():
+    return translation_steps

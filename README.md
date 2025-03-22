@@ -6,6 +6,7 @@ A fun and experimental tool that randomly translates text through multiple langu
 
 The Language Randomizer demonstrates how meaning can shift when text is passed through multiple languages in a "telephone game" style translation chain. You can force specific languages into the chain and control the number of translation iterations.
 
+
 ## Features
 
 - **Randomized Translation Chain:** Translates input text through a series of random languages.
@@ -15,6 +16,19 @@ The Language Randomizer demonstrates how meaning can shift when text is passed t
 - **Help & Options Dialogs:** Easy access to instructions and language options.
 - **Progress Tracking:** Visual progress bar indicating the translation process.
 
+### In v1.1
+
+- **Themes:** Use your own `ThemedTK` theme in the code in [App.py](https://github.com/DameonJWendtland/language-randomizer/blob/v1.1/App.py)
+```py
+root = ThemedTk(theme="custom_theme")
+```
+You may look up [List of ttk Themes](https://wiki.tcl-lang.org/page/List+of+ttk+Themes)
+  
+- **Secure entry:** Now it is requied to select a *valid* target language and to type in a positive integer into the `randomizer iterations` field.
+- **Visuals:** The `translate text` button is now disabled until all requirements are fulfilled of the secure entry. Fields, which are invalid are changing their `background-color` to `lightcoral`.
+- **Filter languages:** Type into the selector field of the target language to filter for languages. To unselect the filter: clear the text and open the dropdown.
+- **Review Languages:** You can now see all languages that have been used during the iterations with each output they gave.
+- **Export:** The steps for each language with their coresponding translation can be exported as `.txt`.
 ## Folder Structure
 
 ```
@@ -23,6 +37,7 @@ language_randomizer/
 ├── translator.py    # Contains functions for translation logic and language randomization
 ├── gui.py           # Manages the graphical user interface
 ├── options.py       # Implements the options dialog for forced languages
+├── show_steps.py    # Implements the translation steps dialogue with each language which was iterated through
 └── help_window.py   # Implements the help dialog window
 ```
 
@@ -65,3 +80,9 @@ Once the GUI appears:
 ---
 
 Enjoy experimenting with translations and have fun with your Language Randomizer! 😊
+
+
+---
+
+### Attribution
+<a href="https://www.flaticon.com/free-icons/translate" title="translate icons">App icon created by photo3idea_studio - Flaticon</a>
