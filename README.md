@@ -80,3 +80,9 @@ Once the GUI appears:
 ---
 
 Enjoy experimenting with translations and have fun with your Language Randomizer! 😊
+
+
+---
+
+### Attribution
+<a href="https://www.flaticon.com/free-icons/translate" title="translate icons">App icon created by photo3idea_studio - Flaticon</a>
