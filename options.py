@@ -25,7 +25,7 @@ def open_options():
     canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
     canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
     info_text = tk.Text(scrollable_frame, wrap=tk.WORD, height=5)
-    info_text.insert("1.0", "You may select the language you want to be definitely included in the randomizer. To undo selection, just reopen the options window and apply changes without anything selected.\n\nEverything will be unselected after reopening!")
+    info_text.insert("1.0", "You may select the language you want to be definitely included in the randomizer. To undo selection: Press the \"Reset\" button and apply after.")
     info_text.config(state="disabled")
     info_text.pack(padx=10, pady=(10, 10), fill="x")
     info_label = ttk.Label(scrollable_frame, text="Select forced languages:")
