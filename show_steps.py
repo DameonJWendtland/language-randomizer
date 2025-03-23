@@ -34,14 +34,14 @@ def show_translation_steps():
 
     steps = translator.get_translation_steps()
     if not steps:
-        no_label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("Helvetica", 12))
+        no_label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("Consolas", 20))
         no_label.pack(padx=10, pady=10)
     else:
         for idx, (lang, step_text) in enumerate(steps, 1):
             lang_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):")
             lang_label.pack(anchor="w", padx=10, pady=(10, 2))
 
-            translation_text = tk.Text(scrollable_frame, wrap="word", font=("Helvetica", 12), height=4)
+            translation_text = tk.Text(scrollable_frame, wrap="word", font=("Consolas", 20), height=4)
             translation_text.pack(fill="x", padx=10, pady=(0, 10))
             translation_text.insert("1.0", step_text)
             translation_text.configure(state="disabled")
