@@ -5,6 +5,8 @@ def open_help():
     help_win = tk.Toplevel()
     help_win.title("Help")
     help_win.minsize(450, 500)
+    help_win.iconbitmap("C:/Users/micro/PycharmProjects/language-randomizer/translating.ico")
+
     canvas = tk.Canvas(help_win)
     scrollbar = tk.Scrollbar(help_win, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)

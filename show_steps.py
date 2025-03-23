@@ -7,6 +7,7 @@ def show_translation_steps():
     steps_win = tk.Toplevel()
     steps_win.title("Translation Steps")
     steps_win.geometry("760x400")
+    steps_win.iconbitmap("C:/Users/micro/PycharmProjects/language-randomizer/translating.ico")
 
     top_frame = ttk.Frame(steps_win)
     top_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
