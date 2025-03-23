@@ -54,7 +54,7 @@ def create_main_gui(root):
     top_frame.columnconfigure(0, weight=1)
 
     menu_button = ttk.Button(top_frame, text="Menu", command=open_menu, width=5)
-    menu_button.pack(side="right", padx=(0, 5), pady=5)
+    menu_button.pack(side="left", padx=(5, 0), pady=5)
 
     help_button = ttk.Button(top_frame, text="?", command=open_help, width=3)
     help_button.pack(side="right", padx=(0, 5), pady=5)
@@ -157,7 +157,7 @@ def create_main_gui(root):
 
     show_steps_btn = ttk.Button(right_frame, text="Show Steps", command=lambda: show_translation_steps())
     show_steps_btn.grid(row=2, column=1, sticky="e", padx=5, pady=5)
-    
+
     used_lang_text = tk.Text(right_frame, wrap=tk.WORD, height=3)
     used_lang_text.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
     used_lang_text.config(state="disabled")
