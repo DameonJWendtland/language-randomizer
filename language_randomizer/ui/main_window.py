@@ -1,9 +1,10 @@
-﻿import queue
+import queue
 import threading
 import tkinter as tk
 from tkinter import ttk
 
 from .. import translator
+from ..i18n import t
 from ..translator import randomizer, supported_languages
 from .context_menu import bind_context_menu
 from .help_window import open_help
@@ -171,11 +172,23 @@ def create_main_gui(root):
 
     progress_queue = queue.Queue()
 
+    def refresh_ui(force_rebuild=False):
+        root.title(t("app_title"))
+        if force_rebuild:
+            for widget in root.winfo_children():
+                widget.destroy()
+            create_main_gui(root)
+
     top_frame = ttk.Frame(root)
     top_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
     top_frame.columnconfigure(0, weight=1)
 
-    menu_button = ttk.Button(top_frame, text="Menu", command=open_menu, width=5)
+    menu_button = ttk.Button(
+        top_frame,
+        text=t("menu_button"),
+        command=lambda: open_menu(on_ui_refresh=refresh_ui),
+        width=7,
+    )
     menu_button.pack(side="left", padx=(5, 0), pady=5)
 
     help_button = ttk.Button(top_frame, text="?", command=open_help, width=3)
@@ -191,15 +204,15 @@ def create_main_gui(root):
     root.columnconfigure(1, weight=1)
     root.rowconfigure(1, weight=1)
 
-    input_label = ttk.Label(left_frame, text="Input:")
+    input_label = ttk.Label(left_frame, text=t("input_label"))
     input_label.grid(row=0, column=0, columnspan=2, sticky="w", padx=5, pady=5)
 
     text_field = tk.Text(left_frame, wrap=tk.WORD)
     text_field.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
-    text_field.insert("1.0", "Insert your Text here...")
+    text_field.insert("1.0", t("input_placeholder"))
     bind_context_menu(text_field)
 
-    lang_label = ttk.Label(left_frame, text="Select target language:")
+    lang_label = ttk.Label(left_frame, text=t("target_language_label"))
     lang_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=5, pady=(10, 2))
 
     language_selector = tk.StringVar(left_frame)
@@ -220,13 +233,15 @@ def create_main_gui(root):
 
     def refresh_forced_languages_label(forced_list=None):
         forced_count = len(forced_list) if forced_list is not None else len(translator.forcedLanguages)
-        forced_lang_status_var.set(f"Forced Languages: {forced_count} / {max_forced_languages}")
+        forced_lang_status_var.set(
+            t("forced_languages_status", count=forced_count, maximum=max_forced_languages)
+        )
 
     refresh_forced_languages_label()
 
     options_button = ttk.Button(
         left_frame,
-        text="Options",
+        text=t("options_button"),
         command=lambda: open_options(on_apply=refresh_forced_languages_label),
     )
     options_button.grid(row=3, column=1, sticky="ew", padx=5, pady=2)
@@ -234,7 +249,7 @@ def create_main_gui(root):
     forced_lang_status_label = ttk.Label(left_frame, textvariable=forced_lang_status_var, foreground="grey")
     forced_lang_status_label.grid(row=4, column=0, columnspan=2, sticky="w", padx=5, pady=(2, 8))
 
-    iter_label = ttk.Label(left_frame, text="Randomized iterations:")
+    iter_label = ttk.Label(left_frame, text=t("iterations_label"))
     iter_label.grid(row=5, column=0, columnspan=2, sticky="w", padx=5, pady=(10, 2))
 
     iteration_var = tk.StringVar(left_frame)
@@ -256,14 +271,14 @@ def create_main_gui(root):
     bind_context_menu(number_entry)
 
     progress_status_var = tk.StringVar(left_frame)
-    progress_status_var.set("Translating to - (0/0)")
+    progress_status_var.set(t("progress_initial"))
     progress_status_label = ttk.Label(left_frame, textvariable=progress_status_var, foreground="grey")
     progress_status_label.grid(row=7, column=0, columnspan=2, sticky="w", padx=5, pady=(8, 2))
 
     progress_bar = ttk.Progressbar(left_frame, orient="horizontal", length=200, mode="determinate")
     progress_bar.grid(row=8, column=0, columnspan=2, sticky="ew", padx=5, pady=(2, 2))
 
-    translate_button = ttk.Button(left_frame, text="Translate Text")
+    translate_button = ttk.Button(left_frame, text=t("translate_button"))
     translate_button.grid(row=9, column=0, columnspan=2, sticky="ew", padx=5, pady=(2, 5))
 
     for i in range(10):
@@ -296,7 +311,7 @@ def create_main_gui(root):
     iteration_var.trace("w", check_validity)
     check_validity()
 
-    output_label = ttk.Label(right_frame, text="Output:")
+    output_label = ttk.Label(right_frame, text=t("output_label"))
     output_label.grid(row=0, column=0, columnspan=2, sticky="w", padx=5, pady=5)
 
     output_text = tk.Text(right_frame, wrap=tk.WORD)
@@ -304,10 +319,10 @@ def create_main_gui(root):
     set_text_widget_content(output_text, "")
     bind_context_menu(output_text)
 
-    used_lang_label = ttk.Label(right_frame, text="Used Languages:")
+    used_lang_label = ttk.Label(right_frame, text=t("used_languages_label"))
     used_lang_label.grid(row=2, column=0, sticky="w", padx=5, pady=5)
 
-    show_steps_btn = ttk.Button(right_frame, text="Show Steps", command=show_translation_steps)
+    show_steps_btn = ttk.Button(right_frame, text=t("show_steps_button"), command=show_translation_steps)
     show_steps_btn.grid(row=2, column=1, sticky="e", padx=5, pady=5)
 
     used_lang_text = tk.Text(right_frame, wrap=tk.WORD, height=3)
@@ -347,7 +362,7 @@ def create_main_gui(root):
         entered_text = text_field.get("1.0", tk.END).strip()
         if entered_text:
             progress_bar["value"] = 0
-            progress_status_var.set("Preparing translation...")
+            progress_status_var.set(t("progress_preparing"))
             translate_button.config(state="disabled")
             threading.Thread(target=run_randomizer, args=(entered_text,), daemon=True).start()
 
@@ -358,7 +373,10 @@ def create_main_gui(root):
 
         used_lang_text.config(state="normal")
         used_lang_text.delete("1.0", tk.END)
-        used_lang_text.insert("1.0", lang_chain + f"\nTarget language: [{selected_language_name}]")
+        used_lang_text.insert(
+            "1.0",
+            lang_chain + "\n" + t("target_language_line", language=selected_language_name),
+        )
         used_lang_text.config(state="disabled")
 
         root.after(0, lambda: translate_button.config(state="normal"))

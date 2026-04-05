@@ -7,6 +7,7 @@ from pathlib import Path
 DEFAULT_SETTINGS = {
     "font_family": "",
     "theme": "",
+    "ui_language": "en",
     "activate_transliteration": False,
     "forced_languages": [],
 }
@@ -32,11 +33,13 @@ def _sanitize_settings(raw_settings):
 
     font_family = raw_settings.get("font_family", "")
     theme = raw_settings.get("theme", "")
+    ui_language = raw_settings.get("ui_language", "en")
     activate_transliteration = raw_settings.get("activate_transliteration", False)
     forced_languages = raw_settings.get("forced_languages", [])
 
     sanitized["font_family"] = str(font_family) if font_family else ""
     sanitized["theme"] = str(theme) if theme else ""
+    sanitized["ui_language"] = str(ui_language).strip().lower() if ui_language else "en"
     sanitized["activate_transliteration"] = bool(activate_transliteration)
 
     if isinstance(forced_languages, list):

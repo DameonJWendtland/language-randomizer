@@ -1,5 +1,6 @@
 from tkinter import ttk
 
+from .i18n import set_ui_language, t
 from . import translator
 from .settings_store import load_settings
 from ttkthemes import ThemedTk
@@ -10,6 +11,7 @@ from .ui.window_icon import apply_window_icon
 
 def _apply_saved_settings(root):
     settings = load_settings()
+    set_ui_language(settings.get("ui_language", "en"))
 
     saved_font = settings.get("font_family", "")
     if saved_font:
@@ -41,8 +43,8 @@ def _apply_saved_settings(root):
 
 def main():
     root = ThemedTk(theme="default")
-    root.title("Language Randomizer")
-    apply_window_icon(root)
     _apply_saved_settings(root)
+    root.title(t("app_title"))
+    apply_window_icon(root)
     create_main_gui(root)
     root.mainloop()

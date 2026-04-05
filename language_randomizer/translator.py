@@ -1,8 +1,10 @@
-﻿import asyncio
+import asyncio
 import random as rdm
 import re
 
 from googletrans import LANGUAGES, Translator
+
+from .i18n import t
 
 language_name_to_code = {value: key for key, value in LANGUAGES.items()}
 supported_languages = list(LANGUAGES.values())
@@ -301,7 +303,12 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
         _queue_progress(
             progress_queue,
             progress_value=100 * 1 / total_steps,
-            status_text=f"Translating to {selected_language_name} (0/{total_iteration_display})",
+            status_text=t(
+                "progress_translating",
+                language=selected_language_name,
+                current=0,
+                total=total_iteration_display,
+            ),
         )
 
         forced_count = len(forcedLanguages)
@@ -321,7 +328,12 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                 step_language = forced_lang
                 _queue_progress(
                     progress_queue,
-                    status_text=f"Translating to {step_language} ({i + 1}/{total_iteration_display})",
+                    status_text=t(
+                        "progress_translating",
+                        language=step_language,
+                        current=(i + 1),
+                        total=total_iteration_display,
+                    ),
                 )
                 text, current_language_name, current_language_code = await _language_step(
                     translator_client,
@@ -339,7 +351,7 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                         j
                         for j in range(1, len(supported_languages) + 1)
                         if supported_languages[j - 1] != last_language
-                        ]
+                    ]
                     random_value = rdm.choice(candidate_indices)
                 else:
                     random_value = rdm.randint(1, len(supported_languages))
@@ -347,7 +359,12 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                 step_language = supported_languages[random_value - 1]
                 _queue_progress(
                     progress_queue,
-                    status_text=f"Translating to {step_language} ({i + 1}/{total_iteration_display})",
+                    status_text=t(
+                        "progress_translating",
+                        language=step_language,
+                        current=(i + 1),
+                        total=total_iteration_display,
+                    ),
                 )
                 text, current_language_name, current_language_code = await _language_step(
                     translator_client,
@@ -366,9 +383,11 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
 
         _queue_progress(
             progress_queue,
-            status_text=(
-                f"Translating to {selected_language_name} "
-                f"({total_iteration_display}/{total_iteration_display})"
+            status_text=t(
+                "progress_translating",
+                language=selected_language_name,
+                current=total_iteration_display,
+                total=total_iteration_display,
             ),
         )
         text, final_pronunciation, final_source_text, final_source_code = await _translate_final_with_fallbacks(
@@ -381,7 +400,7 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
         )
         _queue_progress(progress_queue, progress_value=100)
 
-    lang_chain = "Detected language: [" + detected_language + "]\n"
+    lang_chain = f"{t('detected_language_prefix')}: [{detected_language}]\n"
     if used_languages:
         lang_chain += " -> ".join(used_languages)
 

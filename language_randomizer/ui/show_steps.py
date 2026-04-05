@@ -5,6 +5,7 @@ import webbrowser
 from tkinter import filedialog, ttk
 
 from .. import translator
+from ..i18n import t
 from .context_menu import bind_context_menu
 from .mousewheel import enable_vertical_mousewheel
 from .text_direction import set_text_widget_content
@@ -90,7 +91,7 @@ def _build_transliteration_widget(parent, transliteration_text):
 
     title = tk.Label(
         badge_frame,
-        text="Transliteration:",
+        text=t("transliteration_label"),
         bg="#F2D35C",
         fg="#202020",
         font=("TkDefaultFont", 10, "bold"),
@@ -113,14 +114,14 @@ def _build_transliteration_widget(parent, transliteration_text):
 
 def show_translation_steps():
     steps_win = tk.Toplevel()
-    steps_win.title("Translation Steps")
+    steps_win.title(t("translation_steps_title"))
     steps_win.geometry("760x430")
     apply_window_icon(steps_win)
 
     top_frame = ttk.Frame(steps_win)
     top_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
 
-    export_btn = ttk.Button(top_frame, text="Export", command=export_steps)
+    export_btn = ttk.Button(top_frame, text=t("export_button"), command=export_steps)
     export_btn.pack(side="right")
 
     canvas = tk.Canvas(steps_win)
@@ -137,14 +138,14 @@ def show_translation_steps():
 
     steps = translator.get_translation_steps()
     if not steps:
-        no_label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("TkDefaultFont", 20))
+        no_label = ttk.Label(scrollable_frame, text=t("no_steps_recorded"), font=("TkDefaultFont", 20))
         no_label.pack(padx=10, pady=10)
     else:
         _, _, _, _, _, final_target_lang_code = _normalize_step(steps[-1])
         for idx, step in enumerate(steps, 1):
             lang, step_text, transliteration_text, _, _, target_lang_code = _normalize_step(step)
 
-            lang_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):")
+            lang_label = ttk.Label(scrollable_frame, text=t("step_label", index=idx, language=lang))
             lang_label.pack(anchor="w", padx=10, pady=(10, 2))
 
             translation_text = tk.Text(scrollable_frame, wrap="word", font=("TkDefaultFont", 15), height=4)
@@ -157,7 +158,7 @@ def show_translation_steps():
 
             open_google_button = ttk.Button(
                 scrollable_frame,
-                text="See on Google Translate",
+                text=t("see_on_google_translate_button"),
                 command=lambda s=step_text, sl=target_lang_code, tl=final_target_lang_code: _open_in_google_translate(
                     s, sl, tl
                 ),
@@ -176,24 +177,24 @@ def export_steps():
     separator_line = "-" * 72
 
     if not steps:
-        export_text = "No steps recorded."
+        export_text = t("no_steps_recorded")
     else:
         for idx, step in enumerate(steps, 1):
             if idx > 1:
                 export_text += f"{separator_line}\n"
             lang, step_text, transliteration_text, _, _, _ = _normalize_step(step)
-            export_text += f"Step {idx} ({lang}):\n{step_text}\n"
+            export_text += f"{t('step_label', index=idx, language=lang)}\n{step_text}\n"
             if _should_show_transliteration(step_text, transliteration_text):
-                export_text += f"Transliteration: {transliteration_text}\n"
+                export_text += f"{t('transliteration_label')} {transliteration_text}\n"
             export_text += "\n"
 
     filename = filedialog.asksaveasfilename(
         defaultextension=".txt",
         filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
-        title="Save translation steps as...",
+        title=t("save_steps_title"),
     )
 
     if filename:
         with open(filename, "w", encoding="utf-8") as export_file:
             export_file.write(export_text)
-        print("Steps exported to", filename)
+        print(t("steps_exported_log"), filename)

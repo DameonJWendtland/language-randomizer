@@ -1,5 +1,7 @@
 import tkinter as tk
 
+from ..i18n import t
+
 _RIGHT_CLICK_EVENTS = ("<Button-3>", "<Button-2>", "<Control-Button-1>")
 
 
@@ -75,11 +77,11 @@ def _select_all(widget):
 
 def bind_context_menu(widget):
     menu = tk.Menu(widget, tearoff=0)
-    menu.add_command(label="Cut", command=lambda: _cut(widget))
-    menu.add_command(label="Copy", command=lambda: _copy(widget))
-    menu.add_command(label="Paste", command=lambda: _paste(widget))
+    menu.add_command(label=t("context_cut"), command=lambda: _cut(widget))
+    menu.add_command(label=t("context_copy"), command=lambda: _copy(widget))
+    menu.add_command(label=t("context_paste"), command=lambda: _paste(widget))
     menu.add_separator()
-    menu.add_command(label="Select All", command=lambda: _select_all(widget))
+    menu.add_command(label=t("context_select_all"), command=lambda: _select_all(widget))
 
     def show_menu(event):
         try:

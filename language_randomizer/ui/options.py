@@ -1,7 +1,8 @@
-﻿import tkinter as tk
+import tkinter as tk
 from tkinter import ttk
 
 from .. import translator
+from ..i18n import t
 from ..settings_store import update_settings
 from .context_menu import bind_context_menu
 from .mousewheel import enable_vertical_mousewheel
@@ -9,7 +10,7 @@ from .mousewheel import enable_vertical_mousewheel
 
 def open_options(on_apply=None):
     options_win = tk.Toplevel()
-    options_win.title("Options - Force Languages")
+    options_win.title(t("options_window_title"))
     options_win.geometry("700x400")
 
     canvas = tk.Canvas(options_win)
@@ -30,16 +31,12 @@ def open_options(on_apply=None):
     enable_vertical_mousewheel(canvas)
 
     info_text = tk.Text(scrollable_frame, wrap=tk.WORD, height=4)
-    info_text.insert(
-        "1.0",
-        "You may select languages that must be included in the randomizer. "
-        "To clear your selection, click \"Reset\" and then \"Apply\".",
-    )
+    info_text.insert("1.0", t("options_info_text"))
     info_text.config(state="disabled")
     info_text.pack(padx=10, pady=(10, 10), fill="x")
     bind_context_menu(info_text)
 
-    info_label = ttk.Label(scrollable_frame, text="Select forced languages:")
+    info_label = ttk.Label(scrollable_frame, text=t("options_select_forced"))
     info_label.pack(padx=10, pady=(0, 10), fill="x")
 
     forced_vars = {}
@@ -74,11 +71,11 @@ def open_options(on_apply=None):
     btn_frame = ttk.Frame(scrollable_frame)
     btn_frame.pack(pady=10)
 
-    select_all_btn = ttk.Button(btn_frame, text="Select All", command=select_all_options)
+    select_all_btn = ttk.Button(btn_frame, text=t("select_all_button"), command=select_all_options)
     select_all_btn.pack(side="left", padx=(0, 10))
 
-    reset_btn = ttk.Button(btn_frame, text="Reset", command=reset_options)
+    reset_btn = ttk.Button(btn_frame, text=t("reset_button"), command=reset_options)
     reset_btn.pack(side="left", padx=(0, 10))
 
-    apply_btn = ttk.Button(btn_frame, text="Apply", command=apply_options)
+    apply_btn = ttk.Button(btn_frame, text=t("apply_button"), command=apply_options)
     apply_btn.pack(side="left")
