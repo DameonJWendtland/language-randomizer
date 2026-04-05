@@ -26,6 +26,20 @@ def _console_log(message):
         print(fallback)
 
 
+def _queue_progress(progress_queue, progress_value=None, status_text=None):
+    if progress_queue is None:
+        return
+
+    payload = {}
+    if progress_value is not None:
+        payload["progress"] = max(0, min(100, progress_value))
+    if status_text is not None:
+        payload["status"] = status_text
+
+    if payload:
+        progress_queue.put(payload)
+
+
 async def _translate_sentence_with_retries(translator_client, sentence, dest_language_code, max_retries=3):
     if not sentence.strip():
         return sentence, ""
@@ -159,7 +173,12 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
         if forcedLanguages:
             num_steps = max(num_steps, len(forcedLanguages))
         total_steps = num_steps + 2
-        progress_queue.put(100 * 1 / total_steps)
+        total_iteration_display = num_steps + 1
+        _queue_progress(
+            progress_queue,
+            progress_value=100 * 1 / total_steps,
+            status_text=f"Translating to {selected_language_name} (0/{total_iteration_display})",
+        )
 
         forced_count = len(forcedLanguages)
         forced_positions = []
@@ -175,6 +194,11 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
             if forced_count > 0 and i in forced_positions:
                 forced_lang = forced_order[forced_positions.index(i)]
                 forced_index = supported_languages.index(forced_lang) + 1
+                step_language = forced_lang
+                _queue_progress(
+                    progress_queue,
+                    status_text=f"Translating to {step_language} ({i + 1}/{total_iteration_display})",
+                )
                 text = await _language_step(translator_client, text, forced_index, used_languages, steps)
             else:
                 if used_languages:
@@ -183,20 +207,32 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                         j
                         for j in range(1, len(supported_languages) + 1)
                         if supported_languages[j - 1] != last_language
-                    ]
+                        ]
                     random_value = rdm.choice(candidate_indices)
                 else:
                     random_value = rdm.randint(1, len(supported_languages))
 
+                step_language = supported_languages[random_value - 1]
+                _queue_progress(
+                    progress_queue,
+                    status_text=f"Translating to {step_language} ({i + 1}/{total_iteration_display})",
+                )
                 text = await _language_step(translator_client, text, random_value, used_languages, steps)
 
             if used_languages:
                 _console_log("RDM (" + used_languages[-1] + "): " + text)
 
-            progress_queue.put(100 * (1 + (i + 1)) / total_steps)
+            _queue_progress(progress_queue, progress_value=100 * (1 + (i + 1)) / total_steps)
 
+        _queue_progress(
+            progress_queue,
+            status_text=(
+                f"Translating to {selected_language_name} "
+                f"({total_iteration_display}/{total_iteration_display})"
+            ),
+        )
         text, final_pronunciation = await _safe_translate(translator_client, text, selected_language_code)
-        progress_queue.put(100)
+        _queue_progress(progress_queue, progress_value=100)
 
     lang_chain = "Detected language: [" + detected_language + "]\n"
     if used_languages:
