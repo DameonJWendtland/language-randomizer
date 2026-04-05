@@ -1,18 +1,20 @@
-import tkinter as tk
-from tkinter import ttk, filedialog
-import translator
+﻿import tkinter as tk
+from tkinter import filedialog, ttk
+
+from .. import translator
+from .window_icon import apply_window_icon
 
 
 def show_translation_steps():
     steps_win = tk.Toplevel()
     steps_win.title("Translation Steps")
     steps_win.geometry("760x400")
-    steps_win.iconbitmap("C:/Users/micro/PycharmProjects/language-randomizer/translating.ico")
+    apply_window_icon(steps_win)
 
     top_frame = ttk.Frame(steps_win)
     top_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
 
-    export_btn = ttk.Button(top_frame, text="Export", command=lambda: export_steps())
+    export_btn = ttk.Button(top_frame, text="Export", command=export_steps)
     export_btn.pack(side="right")
 
     canvas = tk.Canvas(steps_win)
@@ -54,6 +56,7 @@ def show_translation_steps():
 def export_steps():
     steps = translator.get_translation_steps()
     export_text = ""
+
     if not steps:
         export_text = "No steps recorded."
     else:
@@ -63,10 +66,10 @@ def export_steps():
     filename = filedialog.asksaveasfilename(
         defaultextension=".txt",
         filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
-        title="Save translation steps as..."
+        title="Save translation steps as...",
     )
 
     if filename:
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(export_text)
+        with open(filename, "w", encoding="utf-8") as export_file:
+            export_file.write(export_text)
         print("Steps exported to", filename)
