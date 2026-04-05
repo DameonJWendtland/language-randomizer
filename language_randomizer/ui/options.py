@@ -3,6 +3,7 @@ from tkinter import ttk
 
 from .. import translator
 from ..settings_store import update_settings
+from .context_menu import bind_context_menu
 from .mousewheel import enable_vertical_mousewheel
 
 
@@ -36,6 +37,7 @@ def open_options():
     )
     info_text.config(state="disabled")
     info_text.pack(padx=10, pady=(10, 10), fill="x")
+    bind_context_menu(info_text)
 
     info_label = ttk.Label(scrollable_frame, text="Select forced languages:")
     info_label.pack(padx=10, pady=(0, 10), fill="x")
