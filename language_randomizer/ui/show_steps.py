@@ -3,6 +3,7 @@ import unicodedata
 from tkinter import filedialog, ttk
 
 from .. import translator
+from .mousewheel import enable_vertical_mousewheel
 from .text_direction import set_text_widget_content
 from .window_icon import apply_window_icon
 
@@ -44,7 +45,7 @@ def _build_transliteration_widget(parent, transliteration_text):
         text="Transliteration:",
         bg="#F2D35C",
         fg="#202020",
-        font=("Segoe UI", 10, "bold"),
+        font=("TkDefaultFont", 10, "bold"),
         anchor="w",
     )
     title.pack(side="left", padx=(8, 6), pady=6)
@@ -54,7 +55,7 @@ def _build_transliteration_widget(parent, transliteration_text):
         text=transliteration_text,
         bg="#F2D35C",
         fg="#202020",
-        font=("Segoe UI", 10),
+        font=("TkDefaultFont", 10),
         justify="left",
         wraplength=560,
         anchor="w",
@@ -84,17 +85,11 @@ def show_translation_steps():
     canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
     scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-    def _on_mousewheel(event):
-        try:
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-        except tk.TclError:
-            pass
-
-    canvas.bind("<MouseWheel>", _on_mousewheel)
+    enable_vertical_mousewheel(canvas)
 
     steps = translator.get_translation_steps()
     if not steps:
-        no_label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("Segoe UI", 20))
+        no_label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("TkDefaultFont", 20))
         no_label.pack(padx=10, pady=10)
     else:
         for idx, step in enumerate(steps, 1):
@@ -103,7 +98,7 @@ def show_translation_steps():
             lang_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):")
             lang_label.pack(anchor="w", padx=10, pady=(10, 2))
 
-            translation_text = tk.Text(scrollable_frame, wrap="word", font=("Segoe UI", 15), height=4)
+            translation_text = tk.Text(scrollable_frame, wrap="word", font=("TkDefaultFont", 15), height=4)
             translation_text.pack(fill="x", padx=10, pady=(0, 8))
             set_text_widget_content(translation_text, step_text)
 
