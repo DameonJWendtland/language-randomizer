@@ -5,6 +5,7 @@ from tkinter import ttk
 
 from .. import translator
 from ..settings_store import load_settings, update_settings
+from .context_menu import bind_context_menu
 from .window_icon import apply_window_icon
 
 
@@ -93,6 +94,7 @@ def show_settings(menu_win, main_frame):
     elif fonts:
         font_dropdown.set(fonts[0])
     font_dropdown.pack(pady=5, fill="x")
+    bind_context_menu(font_dropdown)
 
     theme_label = ttk.Label(main_frame, text="Select theme:")
     theme_label.pack(pady=5)
@@ -109,6 +111,7 @@ def show_settings(menu_win, main_frame):
     elif available_themes:
         theme_dropdown.set(available_themes[0])
     theme_dropdown.pack(pady=5, fill="x")
+    bind_context_menu(theme_dropdown)
 
     transliteration_var = tk.BooleanVar(value=translator.activateTransliteration)
     transliteration_chk = ttk.Checkbutton(
