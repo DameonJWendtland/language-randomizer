@@ -14,6 +14,9 @@ activateTransliteration = False
 setLoopTimes = 1
 translation_steps = []
 
+MAX_PARALLEL_SENTENCE_REQUESTS = 4
+RETRY_DELAY_SECONDS = 0.6
+
 
 def _console_log(message):
     try:
@@ -23,33 +26,62 @@ def _console_log(message):
         print(fallback)
 
 
+async def _translate_sentence_with_retries(translator_client, sentence, dest_language_code, max_retries=3):
+    if not sentence.strip():
+        return sentence, ""
+
+    retries = 0
+    while retries < max_retries:
+        try:
+            result = await translator_client.translate(sentence, dest=dest_language_code)
+            if result is not None and getattr(result, "text", None):
+                pronunciation = getattr(result, "pronunciation", "") or ""
+                return result.text, pronunciation
+            raise ValueError("No translation received")
+        except Exception as exc:
+            _console_log(f"Error translating sentence '{sentence}': {exc}")
+            retries += 1
+            if retries < max_retries:
+                await asyncio.sleep(RETRY_DELAY_SECONDS)
+
+    _console_log(f"Translation for sentence '{sentence}' failed. Using original sentence.")
+    return sentence, ""
+
+
 async def _safe_translate(translator_client, text, dest_language_code, max_retries=3):
     sentences = re.split(r"(?<=[.!?])\s+", text)
-    translated_sentences = []
-    pronunciation_sentences = []
+    non_empty_sentences = [sentence for sentence in sentences if sentence.strip()]
 
-    for sentence in sentences:
-        if sentence.strip():
-            retries = 0
-            while retries < max_retries:
-                try:
-                    result = await translator_client.translate(sentence, dest=dest_language_code)
-                    if result is not None and getattr(result, "text", None):
-                        translated_sentences.append(result.text)
-                        pronunciation_sentences.append(getattr(result, "pronunciation", "") or "")
-                        break
-                    raise ValueError("No translation received")
-                except Exception as exc:
-                    _console_log(f"Error translating sentence '{sentence}': {exc}")
-                    retries += 1
-                    await asyncio.sleep(1)
-                    if retries == max_retries:
-                        _console_log(f"Translation for sentence '{sentence}' failed. Using original sentence.")
-                        translated_sentences.append(sentence)
-                        pronunciation_sentences.append("")
-        else:
-            translated_sentences.append(sentence)
-            pronunciation_sentences.append("")
+    if len(non_empty_sentences) <= 1:
+        translated_sentences = []
+        pronunciation_sentences = []
+        for sentence in sentences:
+            translated_sentence, pronunciation = await _translate_sentence_with_retries(
+                translator_client,
+                sentence,
+                dest_language_code,
+                max_retries=max_retries,
+            )
+            translated_sentences.append(translated_sentence)
+            pronunciation_sentences.append(pronunciation)
+    else:
+        concurrency = min(MAX_PARALLEL_SENTENCE_REQUESTS, max(1, len(non_empty_sentences)))
+        semaphore = asyncio.Semaphore(concurrency)
+
+        async def _translate_with_limit(sentence):
+            if not sentence.strip():
+                return sentence, ""
+            async with semaphore:
+                return await _translate_sentence_with_retries(
+                    translator_client,
+                    sentence,
+                    dest_language_code,
+                    max_retries=max_retries,
+                )
+
+        translated_pairs = await asyncio.gather(*[_translate_with_limit(sentence) for sentence in sentences])
+        translated_sentences = [pair[0] for pair in translated_pairs]
+        pronunciation_sentences = [pair[1] for pair in translated_pairs]
 
     translated_text = " ".join(translated_sentences)
     pronunciation_text = " ".join(pronunciation_sentences).strip()
@@ -68,7 +100,7 @@ async def _detect_language_code(translator_client, text, max_retries=3):
         except Exception as exc:
             _console_log(f"Error detecting language: {exc}")
             retries += 1
-            await asyncio.sleep(1)
+            await asyncio.sleep(RETRY_DELAY_SECONDS)
 
     return ""
 
@@ -97,7 +129,7 @@ async def _language_step(translator_client, text, value, used_languages, steps):
                 _console_log(f"Error occurred: {exc}, trying again...")
                 timeOutCounter += 1
                 retries += 1
-                await asyncio.sleep(1)
+                await asyncio.sleep(RETRY_DELAY_SECONDS)
 
         return text
 
