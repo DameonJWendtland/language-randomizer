@@ -40,8 +40,21 @@ def _queue_progress(progress_queue, progress_value=None, status_text=None):
         progress_queue.put(payload)
 
 
+def _coerce_to_text(value):
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (list, tuple, set)):
+        parts = [_coerce_to_text(part) for part in value]
+        parts = [part for part in parts if part]
+        return " ".join(parts).strip()
+    return str(value)
+
+
 def _normalize_text_for_compare(text):
-    return re.sub(r"\s+", " ", (text or "").strip()).casefold()
+    normalized_text = _coerce_to_text(text)
+    return re.sub(r"\s+", " ", normalized_text.strip()).casefold()
 
 
 def _is_effectively_same_text(left_text, right_text):
@@ -55,8 +68,9 @@ async def _translate_sentence_with_retries(
     source_language_code=None,
     max_retries=3,
 ):
-    if not sentence.strip():
-        return sentence, ""
+    sentence_text = _coerce_to_text(sentence)
+    if not sentence_text.strip():
+        return sentence_text, ""
 
     retries = 0
     while retries < max_retries:
@@ -65,19 +79,20 @@ async def _translate_sentence_with_retries(
             if source_language_code and source_language_code != "auto":
                 translate_kwargs["src"] = source_language_code
 
-            result = await translator_client.translate(sentence, **translate_kwargs)
-            if result is not None and getattr(result, "text", None):
-                pronunciation = getattr(result, "pronunciation", "") or ""
-                return result.text, pronunciation
+            result = await translator_client.translate(sentence_text, **translate_kwargs)
+            result_text = _coerce_to_text(getattr(result, "text", ""))
+            if result is not None and result_text:
+                pronunciation = _coerce_to_text(getattr(result, "pronunciation", "") or "")
+                return result_text, pronunciation
             raise ValueError("No translation received")
         except Exception as exc:
-            _console_log(f"Error translating sentence '{sentence}': {exc}")
+            _console_log(f"Error translating sentence '{sentence_text}': {exc}")
             retries += 1
             if retries < max_retries:
                 await asyncio.sleep(RETRY_DELAY_SECONDS)
 
-    _console_log(f"Translation for sentence '{sentence}' failed. Using original sentence.")
-    return sentence, ""
+    _console_log(f"Translation for sentence '{sentence_text}' failed. Using original sentence.")
+    return sentence_text, ""
 
 
 async def _safe_translate(
@@ -87,7 +102,8 @@ async def _safe_translate(
     source_language_code=None,
     max_retries=3,
 ):
-    sentences = re.split(r"(?<=[.!?])\s+", text)
+    source_text = _coerce_to_text(text)
+    sentences = re.split(r"(?<=[.!?])\s+", source_text)
     non_empty_sentences = [sentence for sentence in sentences if sentence.strip()]
 
     if len(non_empty_sentences) <= 1:
@@ -136,6 +152,9 @@ async def _translate_final_with_fallbacks(
     original_text,
     original_source_code,
 ):
+    current_text = _coerce_to_text(current_text)
+    original_text = _coerce_to_text(original_text)
+
     attempts = [
         (current_text, current_source_code),
         (current_text, None),
@@ -183,6 +202,7 @@ async def _translate_final_with_fallbacks(
 
 
 async def _detect_language_code(translator_client, text, max_retries=3):
+    text = _coerce_to_text(text)
     retries = 0
     while retries < max_retries:
         try:
@@ -209,6 +229,7 @@ async def _language_step(
     source_language_code="",
 ):
     global timeOutCounter
+    text = _coerce_to_text(text)
 
     max_retries = 3
     retries = 0
@@ -232,21 +253,21 @@ async def _language_step(
                         "source_language_code": source_language_code or "auto",
                         "target_language_name": dest_language_name,
                         "target_language_code": dest_language_code or "",
-                        "input_text": text,
-                        "output_text": translated_text,
+                        "input_text": _coerce_to_text(text),
+                        "output_text": _coerce_to_text(translated_text),
                         "transliteration": pronunciation,
                     }
                 )
-                return translated_text, dest_language_name, dest_language_code
+                return _coerce_to_text(translated_text), dest_language_name, dest_language_code
             except Exception as exc:
                 _console_log(f"Error occurred: {exc}, trying again...")
                 timeOutCounter += 1
                 retries += 1
                 await asyncio.sleep(RETRY_DELAY_SECONDS)
 
-        return text, dest_language_name, dest_language_code
+        return _coerce_to_text(text), dest_language_name, dest_language_code
 
-    return text, source_language_name, source_language_code
+    return _coerce_to_text(text), source_language_name, source_language_code
 
 
 async def _randomizer_async(text, selected_language_name, progress_queue):
@@ -256,7 +277,8 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
     used_languages = []
 
     async with Translator() as translator_client:
-        original_input_text = text
+        original_input_text = _coerce_to_text(text)
+        text = original_input_text
         detected_lang_code = await _detect_language_code(translator_client, text)
         detected_language = LANGUAGES.get(detected_lang_code, "Unknown")
         current_language_name = detected_language
@@ -370,7 +392,7 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
             "target_language_name": selected_language_name,
             "target_language_code": selected_language_code or "",
             "input_text": final_source_text,
-            "output_text": text,
+            "output_text": _coerce_to_text(text),
             "transliteration": final_pronunciation,
         }
     )
