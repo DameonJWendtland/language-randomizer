@@ -40,14 +40,32 @@ def _queue_progress(progress_queue, progress_value=None, status_text=None):
         progress_queue.put(payload)
 
 
-async def _translate_sentence_with_retries(translator_client, sentence, dest_language_code, max_retries=3):
+def _normalize_text_for_compare(text):
+    return re.sub(r"\s+", " ", (text or "").strip()).casefold()
+
+
+def _is_effectively_same_text(left_text, right_text):
+    return _normalize_text_for_compare(left_text) == _normalize_text_for_compare(right_text)
+
+
+async def _translate_sentence_with_retries(
+    translator_client,
+    sentence,
+    dest_language_code,
+    source_language_code=None,
+    max_retries=3,
+):
     if not sentence.strip():
         return sentence, ""
 
     retries = 0
     while retries < max_retries:
         try:
-            result = await translator_client.translate(sentence, dest=dest_language_code)
+            translate_kwargs = {"dest": dest_language_code}
+            if source_language_code and source_language_code != "auto":
+                translate_kwargs["src"] = source_language_code
+
+            result = await translator_client.translate(sentence, **translate_kwargs)
             if result is not None and getattr(result, "text", None):
                 pronunciation = getattr(result, "pronunciation", "") or ""
                 return result.text, pronunciation
@@ -62,7 +80,13 @@ async def _translate_sentence_with_retries(translator_client, sentence, dest_lan
     return sentence, ""
 
 
-async def _safe_translate(translator_client, text, dest_language_code, max_retries=3):
+async def _safe_translate(
+    translator_client,
+    text,
+    dest_language_code,
+    source_language_code=None,
+    max_retries=3,
+):
     sentences = re.split(r"(?<=[.!?])\s+", text)
     non_empty_sentences = [sentence for sentence in sentences if sentence.strip()]
 
@@ -74,6 +98,7 @@ async def _safe_translate(translator_client, text, dest_language_code, max_retri
                 translator_client,
                 sentence,
                 dest_language_code,
+                source_language_code=source_language_code,
                 max_retries=max_retries,
             )
             translated_sentences.append(translated_sentence)
@@ -90,6 +115,7 @@ async def _safe_translate(translator_client, text, dest_language_code, max_retri
                     translator_client,
                     sentence,
                     dest_language_code,
+                    source_language_code=source_language_code,
                     max_retries=max_retries,
                 )
 
@@ -100,6 +126,60 @@ async def _safe_translate(translator_client, text, dest_language_code, max_retri
     translated_text = " ".join(translated_sentences)
     pronunciation_text = " ".join(pronunciation_sentences).strip()
     return translated_text, pronunciation_text
+
+
+async def _translate_final_with_fallbacks(
+    translator_client,
+    current_text,
+    selected_language_code,
+    current_source_code,
+    original_text,
+    original_source_code,
+):
+    attempts = [
+        (current_text, current_source_code),
+        (current_text, None),
+    ]
+
+    if original_text and not _is_effectively_same_text(original_text, current_text):
+        attempts.append((original_text, original_source_code))
+        attempts.append((original_text, None))
+
+    seen = set()
+    ordered_attempts = []
+    for source_text, source_code in attempts:
+        normalized_key = (
+            _normalize_text_for_compare(source_text),
+            source_code or "auto",
+        )
+        if normalized_key in seen:
+            continue
+        seen.add(normalized_key)
+        ordered_attempts.append((source_text, source_code))
+
+    last_translation = current_text
+    last_pronunciation = ""
+    last_source_text = current_text
+    last_source_code = current_source_code or "auto"
+
+    for source_text, source_code in ordered_attempts:
+        translated_text, pronunciation = await _safe_translate(
+            translator_client,
+            source_text,
+            selected_language_code,
+            source_language_code=source_code,
+        )
+
+        last_translation = translated_text
+        last_pronunciation = pronunciation
+        last_source_text = source_text
+        last_source_code = source_code or "auto"
+
+        if translated_text.strip() and not _is_effectively_same_text(translated_text, source_text):
+            return translated_text, pronunciation, source_text, (source_code or "auto")
+
+    _console_log("Final translation remained unchanged after fallbacks.")
+    return last_translation, last_pronunciation, last_source_text, last_source_code
 
 
 async def _detect_language_code(translator_client, text, max_retries=3):
@@ -144,6 +224,7 @@ async def _language_step(
                     translator_client,
                     text,
                     dest_language_code,
+                    source_language_code=source_language_code,
                 )
                 steps.append(
                     {
@@ -175,6 +256,7 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
     used_languages = []
 
     async with Translator() as translator_client:
+        original_input_text = text
         detected_lang_code = await _detect_language_code(translator_client, text)
         detected_language = LANGUAGES.get(detected_lang_code, "Unknown")
         current_language_name = detected_language
@@ -267,8 +349,14 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                 f"({total_iteration_display}/{total_iteration_display})"
             ),
         )
-        final_source_text = text
-        text, final_pronunciation = await _safe_translate(translator_client, text, selected_language_code)
+        text, final_pronunciation, final_source_text, final_source_code = await _translate_final_with_fallbacks(
+            translator_client,
+            current_text=text,
+            selected_language_code=selected_language_code,
+            current_source_code=current_language_code,
+            original_text=original_input_text,
+            original_source_code=detected_lang_code or "auto",
+        )
         _queue_progress(progress_queue, progress_value=100)
 
     lang_chain = "Detected language: [" + detected_language + "]\n"
@@ -277,8 +365,8 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
 
     steps.append(
         {
-            "source_language_name": current_language_name or "auto",
-            "source_language_code": current_language_code or "auto",
+            "source_language_name": LANGUAGES.get(final_source_code, current_language_name or "Unknown"),
+            "source_language_code": final_source_code or "auto",
             "target_language_name": selected_language_name,
             "target_language_code": selected_language_code or "",
             "input_text": final_source_text,
