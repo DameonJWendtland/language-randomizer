@@ -20,6 +20,7 @@ class AutocompleteCombobox(ttk.Combobox):
         self._popup = None
         self._listbox = None
         self._filtered = []
+        self._click_binding_id = None
 
     def set_completion_list(self, completion_list):
         self._completion_list = completion_list
@@ -51,10 +52,11 @@ class AutocompleteCombobox(ttk.Combobox):
             self._popup.overrideredirect(True)
             self._popup.transient(self.winfo_toplevel())
 
-            self._listbox = tk.Listbox(self._popup, height=6, activestyle="dotbox")
+            self._listbox = tk.Listbox(self._popup, height=6, activestyle="dotbox", takefocus=0)
             self._listbox.pack(fill="both", expand=True)
-            self._listbox.bind("<ButtonRelease-1>", self.on_listbox_click)
+            self._listbox.bind("<Button-1>", self.on_listbox_click)
             self._listbox.bind("<Escape>", self.on_escape)
+            self._click_binding_id = self.winfo_toplevel().bind("<Button-1>", self.on_global_click, add="+")
 
         self._popup.update_idletasks()
         x = self.winfo_rootx()
@@ -73,25 +75,38 @@ class AutocompleteCombobox(ttk.Combobox):
             self._listbox.selection_set(0)
             self._listbox.activate(0)
 
-        self.after_idle(self.focus_set)
-
     def hide_suggestions(self):
         if self._popup is not None and self._popup.winfo_exists():
             self._popup.destroy()
+        if self._click_binding_id is not None:
+            try:
+                self.winfo_toplevel().unbind("<Button-1>", self._click_binding_id)
+            except tk.TclError:
+                pass
+            self._click_binding_id = None
         self._popup = None
         self._listbox = None
 
     def on_listbox_click(self, event=None):
         if self._listbox is None:
-            return
-        selection = self._listbox.curselection()
-        if not selection:
-            return
-        value = self._listbox.get(selection[0])
+            return "break"
+
+        if event is not None:
+            index = self._listbox.nearest(event.y)
+            if index < 0:
+                return "break"
+            value = self._listbox.get(index)
+        else:
+            selection = self._listbox.curselection()
+            if not selection:
+                return "break"
+            value = self._listbox.get(selection[0])
+
         self.set(value)
         self.icursor(tk.END)
+        self.event_generate("<<ComboboxSelected>>")
         self.hide_suggestions()
-        self.focus_set()
+        return "break"
 
     def on_down(self, event=None):
         if self._listbox is None or self._listbox.size() == 0:
@@ -116,6 +131,22 @@ class AutocompleteCombobox(ttk.Combobox):
     def on_escape(self, event=None):
         self.hide_suggestions()
         return "break"
+
+    def on_global_click(self, event=None):
+        if self._popup is None or self._listbox is None:
+            return None
+
+        clicked_widget = event.widget
+        if clicked_widget in (self, self._listbox):
+            return None
+
+        widget_name = str(clicked_widget)
+        popup_name = str(self._popup)
+        if widget_name.startswith(popup_name):
+            return None
+
+        self.hide_suggestions()
+        return None
 
     def move_selection(self, delta):
         if self._listbox is None or self._listbox.size() == 0:
