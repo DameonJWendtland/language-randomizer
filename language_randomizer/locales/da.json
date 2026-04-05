@@ -49,5 +49,16 @@
   "context_cut": "Klip",
   "context_copy": "Kopiér",
   "context_paste": "Indsæt",
-  "context_select_all": "Markér alt"
+  "context_select_all": "Markér alt",
+  "compare_button": "Sammenlign",
+  "compare_window_title": "Sammenlign oversættelse",
+  "compare_left_label": "Original",
+  "compare_right_label": "Resultat",
+  "compare_similarity": "Lighed: {value}",
+  "compare_length": "Tegn: {original} -> {final}",
+  "compare_no_data": "Ingen oversættelse endnu. Kør først en oversættelse.",
+  "compare_similarity_semantic": "Semantisk lighed: {value}",
+  "compare_similarity_textual": "Tekstlighed: {value}",
+  "compare_semantic_unavailable": "Semantisk model er ikke tilgængelig. Installer valgfri pakke: sentence-transformers",
+  "compare_semantic_loading": "Semantisk model indl?ses i baggrunden..."
 }

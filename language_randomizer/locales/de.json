@@ -49,5 +49,16 @@
   "context_cut": "Ausschneiden",
   "context_copy": "Kopieren",
   "context_paste": "Einfügen",
-  "context_select_all": "Alles markieren"
+  "context_select_all": "Alles markieren",
+  "compare_button": "Vergleichen",
+  "compare_window_title": "Übersetzungsvergleich",
+  "compare_left_label": "Original",
+  "compare_right_label": "Endergebnis",
+  "compare_similarity": "Ähnlichkeit: {value}",
+  "compare_length": "Zeichen: {original} -> {final}",
+  "compare_no_data": "Noch keine Übersetzung vorhanden. Bitte zuerst übersetzen.",
+  "compare_similarity_semantic": "Semantische Ähnlichkeit: {value}",
+  "compare_similarity_textual": "Textähnlichkeit: {value}",
+  "compare_semantic_unavailable": "Semantisches Modell nicht verfügbar. Optionales Paket installieren: sentence-transformers",
+  "compare_semantic_loading": "Semantisches Modell wird im Hintergrund geladen..."
 }

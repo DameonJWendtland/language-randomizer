@@ -6,6 +6,7 @@ from tkinter import ttk
 from .. import translator
 from ..i18n import t
 from ..translator import randomizer, supported_languages
+from .compare_view import open_compare_view
 from .context_menu import bind_context_menu
 from .help_window import open_help
 from .menu import open_menu
@@ -171,6 +172,7 @@ def create_main_gui(root):
     )
 
     progress_queue = queue.Queue()
+    last_run_data = {"original": "", "final": ""}
 
     def refresh_ui(force_rebuild=False):
         root.title(t("app_title"))
@@ -322,8 +324,22 @@ def create_main_gui(root):
     used_lang_label = ttk.Label(right_frame, text=t("used_languages_label"))
     used_lang_label.grid(row=2, column=0, sticky="w", padx=5, pady=5)
 
-    show_steps_btn = ttk.Button(right_frame, text=t("show_steps_button"), command=show_translation_steps)
-    show_steps_btn.grid(row=2, column=1, sticky="e", padx=5, pady=5)
+    actions_frame = ttk.Frame(right_frame)
+    actions_frame.grid(row=2, column=1, sticky="e", padx=5, pady=5)
+
+    compare_btn = ttk.Button(
+        actions_frame,
+        text=t("compare_button"),
+        command=lambda: open_compare_view(
+            root,
+            last_run_data.get("original", ""),
+            last_run_data.get("final", ""),
+        ),
+    )
+    compare_btn.pack(side="right")
+
+    show_steps_btn = ttk.Button(actions_frame, text=t("show_steps_button"), command=show_translation_steps)
+    show_steps_btn.pack(side="right", padx=(0, 6))
 
     used_lang_text = tk.Text(right_frame, wrap=tk.WORD, height=3)
     used_lang_text.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
@@ -361,6 +377,7 @@ def create_main_gui(root):
     def on_button_click():
         entered_text = text_field.get("1.0", tk.END).strip()
         if entered_text:
+            last_run_data["original"] = entered_text
             progress_bar["value"] = 0
             progress_status_var.set(t("progress_preparing"))
             translate_button.config(state="disabled")
@@ -368,6 +385,7 @@ def create_main_gui(root):
 
     def run_randomizer(text):
         result_text, lang_chain, selected_language_name = randomizer(text, language_selector, progress_queue)
+        last_run_data["final"] = result_text
 
         set_text_widget_content(output_text, result_text)
 

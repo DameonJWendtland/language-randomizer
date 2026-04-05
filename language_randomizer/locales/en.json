@@ -49,5 +49,16 @@
   "context_cut": "Cut",
   "context_copy": "Copy",
   "context_paste": "Paste",
-  "context_select_all": "Select All"
+  "context_select_all": "Select All",
+  "compare_button": "Compare",
+  "compare_window_title": "Compare Translation",
+  "compare_left_label": "Original",
+  "compare_right_label": "Final",
+  "compare_similarity": "Similarity: {value}",
+  "compare_length": "Characters: {original} -> {final}",
+  "compare_no_data": "No translation available yet. Run a translation first.",
+  "compare_similarity_semantic": "Semantic similarity: {value}",
+  "compare_similarity_textual": "Text similarity: {value}",
+  "compare_semantic_unavailable": "Semantic model unavailable. Install optional package: sentence-transformers",
+  "compare_semantic_loading": "Loading semantic model in background..."
 }
