@@ -6,6 +6,30 @@ from .mousewheel import enable_vertical_mousewheel
 from .window_icon import apply_window_icon
 
 
+def _add_centered_heading(parent, text):
+    heading_row = ttk.Frame(parent)
+    heading_row.pack(fill="x", padx=10, pady=(10, 6))
+
+    left_line = ttk.Separator(heading_row, orient="horizontal")
+    left_line.pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+    heading_label = ttk.Label(heading_row, text=text, justify="center")
+    heading_label.pack(side="left")
+
+    right_line = ttk.Separator(heading_row, orient="horizontal")
+    right_line.pack(side="left", fill="x", expand=True, padx=(8, 0))
+
+
+def _add_section_text(parent, text):
+    section_label = ttk.Label(
+        parent,
+        text=text,
+        justify="left",
+        wraplength=400,
+    )
+    section_label.pack(padx=10, pady=(0, 6), anchor="w")
+
+
 def open_help():
     help_win = tk.Toplevel()
     help_win.title(t("help_window_title"))
@@ -24,38 +48,17 @@ def open_help():
     scrollbar.pack(side="right", fill="y")
     enable_vertical_mousewheel(canvas)
 
-    label_above = ttk.Label(
-        scrollable_frame,
-        text=t("help_intro"),
-        justify="left",
-        wraplength=400,
-    )
-    label_above.pack(padx=10, pady=(10, 5))
+    _add_centered_heading(scrollable_frame, t("help_section_overview"))
+    _add_section_text(scrollable_frame, t("help_intro"))
 
-    separator_1 = ttk.Separator(scrollable_frame, orient="horizontal")
-    separator_1.pack(fill="x", padx=10, pady=5)
+    _add_centered_heading(scrollable_frame, t("help_section_guide"))
+    _add_section_text(scrollable_frame, t("help_steps"))
 
-    label_mid = ttk.Label(scrollable_frame, text=t("help_how_to"), justify="left", wraplength=400)
-    label_mid.pack(padx=10, pady=(5, 10))
+    _add_centered_heading(scrollable_frame, t("help_section_seed"))
+    _add_section_text(scrollable_frame, t("help_seed"))
 
-    separator_2 = ttk.Separator(scrollable_frame, orient="horizontal")
-    separator_2.pack(fill="x", padx=10)
+    _add_centered_heading(scrollable_frame, t("help_section_modes"))
+    _add_section_text(scrollable_frame, t("help_modes"))
 
-    label_below = ttk.Label(
-        scrollable_frame,
-        text=t("help_steps"),
-        justify="left",
-        wraplength=400,
-    )
-    label_below.pack(padx=10, pady=(5, 10))
-
-    separator_3 = ttk.Separator(scrollable_frame, orient="horizontal")
-    separator_3.pack(fill="x", padx=10)
-
-    label_additional = ttk.Label(
-        scrollable_frame,
-        text=t("help_additional"),
-        justify="left",
-        wraplength=400,
-    )
-    label_additional.pack(padx=10, pady=(10, 5))
+    _add_centered_heading(scrollable_frame, t("help_section_notes"))
+    _add_section_text(scrollable_frame, t("help_additional"))
