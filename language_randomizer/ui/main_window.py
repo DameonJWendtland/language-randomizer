@@ -255,13 +255,18 @@ def create_main_gui(root):
     number_entry.grid(row=6, column=0, columnspan=2, sticky="ew", padx=5, pady=2)
     bind_context_menu(number_entry)
 
+    progress_status_var = tk.StringVar(left_frame)
+    progress_status_var.set("Translating to - (0/0)")
+    progress_status_label = ttk.Label(left_frame, textvariable=progress_status_var, foreground="grey")
+    progress_status_label.grid(row=7, column=0, columnspan=2, sticky="w", padx=5, pady=(8, 2))
+
     progress_bar = ttk.Progressbar(left_frame, orient="horizontal", length=200, mode="determinate")
-    progress_bar.grid(row=7, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 2))
+    progress_bar.grid(row=8, column=0, columnspan=2, sticky="ew", padx=5, pady=(2, 2))
 
     translate_button = ttk.Button(left_frame, text="Translate Text")
-    translate_button.grid(row=8, column=0, columnspan=2, sticky="ew", padx=5, pady=(2, 5))
+    translate_button.grid(row=9, column=0, columnspan=2, sticky="ew", padx=5, pady=(2, 5))
 
-    for i in range(9):
+    for i in range(10):
         left_frame.rowconfigure(i, weight=0)
     left_frame.rowconfigure(1, weight=1)
 
@@ -314,15 +319,26 @@ def create_main_gui(root):
         right_frame.rowconfigure(i, weight=0)
     right_frame.rowconfigure(1, weight=1)
 
-    def update_progress_bar(value):
-        progress_bar["value"] = value
+    def update_progress_bar(value=None, status_text=None):
+        if value is not None:
+            progress_bar["value"] = value
+        if status_text:
+            progress_status_var.set(status_text)
         root.update_idletasks()
 
     def check_queue():
         try:
             while True:
-                val = progress_queue.get_nowait()
-                update_progress_bar(val)
+                payload = progress_queue.get_nowait()
+                if isinstance(payload, dict):
+                    update_progress_bar(
+                        payload.get("progress"),
+                        payload.get("status"),
+                    )
+                elif isinstance(payload, tuple) and len(payload) >= 2:
+                    update_progress_bar(payload[0], payload[1])
+                else:
+                    update_progress_bar(payload)
         except queue.Empty:
             pass
         root.after(100, check_queue)
@@ -330,6 +346,8 @@ def create_main_gui(root):
     def on_button_click():
         entered_text = text_field.get("1.0", tk.END).strip()
         if entered_text:
+            progress_bar["value"] = 0
+            progress_status_var.set("Preparing translation...")
             translate_button.config(state="disabled")
             threading.Thread(target=run_randomizer, args=(entered_text,), daemon=True).start()
 
