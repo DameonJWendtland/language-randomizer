@@ -2,6 +2,8 @@
 from tkinter import ttk
 
 from .. import translator
+from ..settings_store import update_settings
+from .mousewheel import enable_vertical_mousewheel
 
 
 def open_options():
@@ -24,15 +26,7 @@ def open_options():
     canvas.bind("<Configure>", resize_canvas)
     canvas.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
-
-    def _on_mousewheel(event):
-        try:
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-        except tk.TclError:
-            pass
-
-    canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
-    canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
+    enable_vertical_mousewheel(canvas)
 
     info_text = tk.Text(scrollable_frame, wrap=tk.WORD, height=4)
     info_text.insert(
@@ -61,6 +55,7 @@ def open_options():
         for lang, var in forced_vars.items():
             if var.get():
                 translator.forcedLanguages.append(lang)
+        update_settings(forced_languages=translator.forcedLanguages)
         options_win.destroy()
         print("Forced languages:", translator.forcedLanguages)
 
