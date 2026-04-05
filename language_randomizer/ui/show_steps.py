@@ -3,6 +3,7 @@ import unicodedata
 from tkinter import filedialog, ttk
 
 from .. import translator
+from .context_menu import bind_context_menu
 from .mousewheel import enable_vertical_mousewheel
 from .text_direction import set_text_widget_content
 from .window_icon import apply_window_icon
@@ -101,6 +102,7 @@ def show_translation_steps():
             translation_text = tk.Text(scrollable_frame, wrap="word", font=("TkDefaultFont", 15), height=4)
             translation_text.pack(fill="x", padx=10, pady=(0, 8))
             set_text_widget_content(translation_text, step_text)
+            bind_context_menu(translation_text)
 
             if _should_show_transliteration(step_text, transliteration_text):
                 _build_transliteration_widget(scrollable_frame, transliteration_text)
