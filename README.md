@@ -74,3 +74,8 @@ python -m language_randomizer
 ```bash
 python -m pip install --upgrade googletrans==4.0.2
 ```
+
+## Attribution
+
+App icon by photo3idea_studio (Flaticon):  
+https://www.flaticon.com/free-icons/translate
