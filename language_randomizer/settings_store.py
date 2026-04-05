@@ -10,7 +10,10 @@ DEFAULT_SETTINGS = {
     "ui_language": "en",
     "activate_transliteration": False,
     "forced_languages": [],
+    "translation_mode": "normal",
 }
+
+_VALID_TRANSLATION_MODES = {"normal", "chaos", "safe"}
 
 
 def _settings_path():
@@ -36,11 +39,14 @@ def _sanitize_settings(raw_settings):
     ui_language = raw_settings.get("ui_language", "en")
     activate_transliteration = raw_settings.get("activate_transliteration", False)
     forced_languages = raw_settings.get("forced_languages", [])
+    translation_mode = raw_settings.get("translation_mode", "normal")
 
     sanitized["font_family"] = str(font_family) if font_family else ""
     sanitized["theme"] = str(theme) if theme else ""
     sanitized["ui_language"] = str(ui_language).strip().lower() if ui_language else "en"
     sanitized["activate_transliteration"] = bool(activate_transliteration)
+    normalized_mode = str(translation_mode).strip().lower() if translation_mode else "normal"
+    sanitized["translation_mode"] = normalized_mode if normalized_mode in _VALID_TRANSLATION_MODES else "normal"
 
     if isinstance(forced_languages, list):
         sanitized["forced_languages"] = [str(lang) for lang in forced_languages if isinstance(lang, str)]

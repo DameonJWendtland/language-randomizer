@@ -32,6 +32,7 @@ def _apply_saved_settings(root):
             pass
 
     translator.activateTransliteration = bool(settings.get("activate_transliteration", False))
+    translator.translationMode = settings.get("translation_mode", "normal")
 
     saved_forced = settings.get("forced_languages", [])
     if isinstance(saved_forced, list):

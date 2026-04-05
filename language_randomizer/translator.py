@@ -19,6 +19,128 @@ translation_steps = []
 MAX_PARALLEL_SENTENCE_REQUESTS = 4
 RETRY_DELAY_SECONDS = 0.6
 
+TRANSLATION_MODES = ("normal", "chaos", "safe")
+translationMode = "normal"
+
+_HIGH_QUALITY_LANGUAGE_CODES = {
+    "ar",
+    "cs",
+    "da",
+    "de",
+    "el",
+    "en",
+    "es",
+    "fi",
+    "fr",
+    "he",
+    "hi",
+    "hu",
+    "id",
+    "it",
+    "ja",
+    "ko",
+    "nl",
+    "no",
+    "pl",
+    "pt",
+    "ro",
+    "ru",
+    "sv",
+    "th",
+    "tr",
+    "uk",
+    "vi",
+    "zh-cn",
+    "zh-tw",
+}
+
+_LOW_QUALITY_LANGUAGE_CODES = {
+    "ay",
+    "bho",
+    "co",
+    "eo",
+    "fy",
+    "gd",
+    "haw",
+    "hmn",
+    "ht",
+    "ig",
+    "ilo",
+    "jv",
+    "jw",
+    "la",
+    "lb",
+    "ln",
+    "lus",
+    "mi",
+    "mn",
+    "mni-mtei",
+    "my",
+    "ny",
+    "om",
+    "qu",
+    "sm",
+    "sn",
+    "so",
+    "st",
+    "su",
+    "tg",
+    "ti",
+    "tk",
+    "to",
+    "ts",
+    "tt",
+    "ug",
+    "yi",
+    "yo",
+    "zu",
+}
+
+
+def _sanitize_translation_mode(mode):
+    candidate = str(mode).strip().lower() if mode else "normal"
+    if candidate in TRANSLATION_MODES:
+        return candidate
+    return "normal"
+
+
+def _get_language_quality_score(language_code):
+    code = str(language_code).strip().lower() if language_code else ""
+    if code in _HIGH_QUALITY_LANGUAGE_CODES:
+        return 0.92
+    if code in _LOW_QUALITY_LANGUAGE_CODES:
+        return 0.16
+    return 0.55
+
+
+def _get_mode_weight_for_score(score, mode):
+    normalized_score = max(0.0, min(1.0, float(score)))
+    if mode == "safe":
+        return (normalized_score ** 3) + 0.01
+    if mode == "chaos":
+        return ((1.0 - normalized_score) ** 3) + 0.01
+    return 1.0
+
+
+def _choose_random_language_index(candidate_indices):
+    if not candidate_indices:
+        return rdm.randint(1, len(supported_languages))
+
+    mode = _sanitize_translation_mode(translationMode)
+    if mode == "normal":
+        return rdm.choice(candidate_indices)
+
+    weights = []
+    for index in candidate_indices:
+        language_code = target_languages[index - 1]
+        quality_score = _get_language_quality_score(language_code)
+        weights.append(_get_mode_weight_for_score(quality_score, mode))
+
+    try:
+        return rdm.choices(candidate_indices, weights=weights, k=1)[0]
+    except Exception:
+        return rdm.choice(candidate_indices)
+
 
 def _console_log(message):
     try:
@@ -273,10 +395,11 @@ async def _language_step(
 
 
 async def _randomizer_async(text, selected_language_name, progress_queue):
-    global translation_steps, forcedLanguages, setLoopTimes
+    global translation_steps, forcedLanguages, setLoopTimes, translationMode
 
     steps = []
     used_languages = []
+    translationMode = _sanitize_translation_mode(translationMode)
 
     async with Translator() as translator_client:
         original_input_text = _coerce_to_text(text)
@@ -294,6 +417,7 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
             _console_log("Forced languages: " + ", ".join(forcedLanguages))
         else:
             _console_log("Forced languages: none")
+        _console_log("Translation mode: " + translationMode)
 
         num_steps = setLoopTimes - 1
         if forcedLanguages:
@@ -352,9 +476,11 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                         for j in range(1, len(supported_languages) + 1)
                         if supported_languages[j - 1] != last_language
                     ]
-                    random_value = rdm.choice(candidate_indices)
+                    random_value = _choose_random_language_index(candidate_indices)
                 else:
-                    random_value = rdm.randint(1, len(supported_languages))
+                    random_value = _choose_random_language_index(
+                        list(range(1, len(supported_languages) + 1))
+                    )
 
                 step_language = supported_languages[random_value - 1]
                 _queue_progress(

@@ -16,6 +16,50 @@ from ..settings_store import load_settings, update_settings
 from .context_menu import bind_context_menu
 from .window_icon import apply_window_icon
 
+_TRANSLATION_MODE_OPTIONS = ("normal", "chaos", "safe")
+
+
+def _get_translation_mode_pairs():
+    return [(mode, t(f"translation_mode_{mode}")) for mode in _TRANSLATION_MODE_OPTIONS]
+
+
+def _get_translation_mode_label(mode_code):
+    options = dict(_get_translation_mode_pairs())
+    return options.get(mode_code, options["normal"])
+
+
+def _get_translation_mode_code_from_label(mode_label):
+    for code, label in _get_translation_mode_pairs():
+        if label == mode_label:
+            return code
+    return "normal"
+
+
+def _fit_window_to_content(window, min_width=360, min_height=260, max_screen_ratio=0.9):
+    if window is None or not window.winfo_exists():
+        return
+
+    window.update_idletasks()
+    requested_width = window.winfo_reqwidth() + 12
+    requested_height = window.winfo_reqheight() + 12
+
+    max_width = int(window.winfo_screenwidth() * max_screen_ratio)
+    max_height = int(window.winfo_screenheight() * max_screen_ratio)
+
+    final_width = min(max(requested_width, min_width), max_width)
+    final_height = min(max(requested_height, min_height), max_height)
+
+    try:
+        pos_x = window.winfo_x()
+        pos_y = window.winfo_y()
+        if pos_x >= 0 and pos_y >= 0:
+            window.geometry(f"{final_width}x{final_height}+{pos_x}+{pos_y}")
+            return
+    except Exception:
+        pass
+
+    window.geometry(f"{final_width}x{final_height}")
+
 
 def _get_available_themes(root):
     themes = []
@@ -141,6 +185,19 @@ def show_settings(menu_win, main_frame, on_ui_refresh=None):
     )
     transliteration_chk.pack(pady=(8, 4), anchor="w")
 
+    translation_mode_label = ttk.Label(main_frame, text=t("translation_mode_label"))
+    translation_mode_label.pack(pady=(8, 5), anchor="w")
+
+    translation_mode_dropdown = ttk.Combobox(
+        main_frame,
+        values=[label for _, label in _get_translation_mode_pairs()],
+        state="readonly",
+    )
+    saved_mode = saved_settings.get("translation_mode", getattr(translator, "translationMode", "normal"))
+    translation_mode_dropdown.set(_get_translation_mode_label(saved_mode))
+    translation_mode_dropdown.pack(pady=2, fill="x")
+    bind_context_menu(translation_mode_dropdown)
+
     apply_btn = ttk.Button(
         main_frame,
         text=t("apply_button"),
@@ -150,6 +207,7 @@ def show_settings(menu_win, main_frame, on_ui_refresh=None):
             theme_dropdown,
             language_dropdown,
             transliteration_var,
+            translation_mode_dropdown,
             on_ui_refresh=on_ui_refresh,
         ),
     )
@@ -161,6 +219,8 @@ def show_settings(menu_win, main_frame, on_ui_refresh=None):
         command=lambda: show_main_menu(menu_win, main_frame, on_ui_refresh=on_ui_refresh),
     )
     back_btn.pack(pady=10)
+
+    _fit_window_to_content(menu_win, min_width=400, min_height=430)
 
 
 def show_main_menu(menu_win, main_frame, on_ui_refresh=None):
@@ -191,11 +251,22 @@ def show_main_menu(menu_win, main_frame, on_ui_refresh=None):
     close_btn = ttk.Button(main_frame, text=t("close_button"), command=menu_win.destroy)
     close_btn.pack(pady=10)
 
+    _fit_window_to_content(menu_win, min_width=360, min_height=260)
 
-def apply_settings(menu_win, font_dropdown, theme_dropdown, language_dropdown, transliteration_var, on_ui_refresh=None):
+
+def apply_settings(
+    menu_win,
+    font_dropdown,
+    theme_dropdown,
+    language_dropdown,
+    transliteration_var,
+    translation_mode_dropdown,
+    on_ui_refresh=None,
+):
     selected_font = font_dropdown.get()
     selected_theme = theme_dropdown.get()
     selected_ui_language = get_ui_language_code_from_label(language_dropdown.get())
+    selected_translation_mode = _get_translation_mode_code_from_label(translation_mode_dropdown.get())
     previous_ui_language = get_ui_language()
     set_ui_language(selected_ui_language)
 
@@ -214,17 +285,20 @@ def apply_settings(menu_win, font_dropdown, theme_dropdown, language_dropdown, t
             root.option_add("*Font", f"{selected_font} 12")
 
     translator.activateTransliteration = transliteration_var.get()
+    translator.translationMode = selected_translation_mode
     update_settings(
         font_family=selected_font,
         theme=selected_theme,
         ui_language=selected_ui_language,
         activate_transliteration=translator.activateTransliteration,
+        translation_mode=translator.translationMode,
     )
 
     print("Applied font:", selected_font)
     print("Applied theme:", selected_theme)
     print("App language:", selected_ui_language)
     print("Activate transliteration:", translator.activateTransliteration)
+    print("Translation mode:", translator.translationMode)
 
     if menu_win is not None and menu_win.winfo_exists():
         menu_win.destroy()
@@ -239,7 +313,7 @@ def apply_settings(menu_win, font_dropdown, theme_dropdown, language_dropdown, t
 def open_menu(on_ui_refresh=None):
     menu_win = tk.Toplevel()
     menu_win.title(t("menu_window_title"))
-    menu_win.geometry("400x300")
+    menu_win.resizable(True, True)
     apply_window_icon(menu_win)
 
     main_frame = ttk.Frame(menu_win, padding=10)
