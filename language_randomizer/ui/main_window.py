@@ -1,10 +1,11 @@
 import queue
 import threading
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox, ttk
 
 from .. import translator
 from ..i18n import t
+from ..settings_store import update_settings
 from ..translator import randomizer, supported_languages
 from .compare_view import open_compare_view
 from .context_menu import bind_context_menu
@@ -13,6 +14,7 @@ from .menu import open_menu
 from .options import open_options
 from .show_steps import show_translation_steps
 from .text_direction import set_text_widget_content
+from .window_icon import apply_window_icon
 
 
 class AutocompleteCombobox(ttk.Combobox):
@@ -181,6 +183,113 @@ def create_main_gui(root):
                 widget.destroy()
             create_main_gui(root)
 
+    def _seed_value_label():
+        if translator.randomSeed is None:
+            return t("seed_auto_value")
+        return str(translator.randomSeed)
+
+    def _seed_button_label():
+        return t("seed_button_with_value", value=_seed_value_label())
+
+    def refresh_seed_button():
+        if seed_button.winfo_exists():
+            seed_button.configure(text=_seed_button_label())
+
+    def open_seed_dialog():
+        dialog = tk.Toplevel(root)
+        dialog.title(t("seed_dialog_title"))
+        dialog.transient(root)
+        dialog.grab_set()
+        dialog.resizable(False, False)
+        apply_window_icon(dialog)
+
+        container = ttk.Frame(dialog, padding=12)
+        container.pack(fill="both", expand=True)
+
+        label = ttk.Label(container, text=t("seed_dialog_label"), justify="left", wraplength=320)
+        label.pack(fill="x", pady=(0, 8))
+
+        seed_var = tk.StringVar(value="" if translator.randomSeed is None else str(translator.randomSeed))
+        entry = ttk.Entry(container, textvariable=seed_var)
+        entry.pack(fill="x", pady=(0, 10))
+        bind_context_menu(entry)
+
+        button_row = ttk.Frame(container)
+        button_row.pack(fill="x")
+
+        def close_with_seed(seed_value):
+            translator.set_random_seed(seed_value)
+            refresh_seed_button()
+            dialog.destroy()
+
+        def _parse_seed_from_entry(show_error=True):
+            raw_value = seed_var.get().strip()
+            if not raw_value:
+                return True, None
+
+            try:
+                parsed = int(raw_value)
+            except ValueError:
+                if show_error:
+                    messagebox.showerror(
+                        t("seed_invalid_title"),
+                        t("seed_invalid_message"),
+                        parent=dialog,
+                    )
+                    entry.focus_set()
+                    entry.selection_range(0, tk.END)
+                return False, None
+
+            return True, parsed
+
+        def apply_seed():
+            ok, parsed_seed = _parse_seed_from_entry(show_error=True)
+            if not ok:
+                return
+            close_with_seed(parsed_seed)
+
+        def copy_seed():
+            seed_to_copy = translator.get_copyable_seed()
+            root.clipboard_clear()
+            root.clipboard_append(str(seed_to_copy))
+            root.update()
+            seed_var.set(str(seed_to_copy))
+            entry.focus_set()
+            entry.selection_range(0, tk.END)
+
+        def save_seed():
+            ok, parsed_seed = _parse_seed_from_entry(show_error=True)
+            if not ok:
+                return
+
+            translator.set_random_seed(parsed_seed)
+            update_settings(random_seed=translator.randomSeed)
+            refresh_seed_button()
+            dialog.destroy()
+
+        auto_button = ttk.Button(button_row, text=t("seed_auto_button"), command=lambda: close_with_seed(None))
+        auto_button.pack(side="left")
+
+        copy_button = ttk.Button(button_row, text=t("seed_copy_button"), command=copy_seed)
+        copy_button.pack(side="left", padx=(6, 0))
+
+        save_button = ttk.Button(button_row, text=t("seed_save_button"), command=save_seed)
+        save_button.pack(side="left", padx=(6, 0))
+
+        cancel_button = ttk.Button(button_row, text=t("close_button"), command=dialog.destroy)
+        cancel_button.pack(side="right")
+
+        apply_button = ttk.Button(button_row, text=t("apply_button"), command=apply_seed)
+        apply_button.pack(side="right", padx=(0, 6))
+
+        dialog.bind("<Return>", lambda _e: apply_seed())
+        dialog.bind("<Escape>", lambda _e: dialog.destroy())
+
+        dialog.update_idletasks()
+        dialog.geometry(f"{max(dialog.winfo_reqwidth() + 8, 360)}x{max(dialog.winfo_reqheight() + 8, 150)}")
+        entry.focus_set()
+        entry.selection_range(0, tk.END)
+
     top_frame = ttk.Frame(root)
     top_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
     top_frame.columnconfigure(0, weight=1)
@@ -193,7 +302,27 @@ def create_main_gui(root):
     )
     menu_button.pack(side="left", padx=(5, 0), pady=5)
 
-    help_button = ttk.Button(top_frame, text="?", command=open_help, width=3)
+    seed_button = ttk.Button(
+        top_frame,
+        text=_seed_button_label(),
+        command=open_seed_dialog,
+    )
+    seed_button.pack(side="left", padx=(6, 0), pady=5)
+
+    help_button = tk.Button(
+        top_frame,
+        text="?",
+        command=open_help,
+        width=3,
+        fg="white",
+        bg="#1f6feb",
+        activeforeground="white",
+        activebackground="#1658b8",
+        font=("Segoe UI", 10, "bold"),
+        relief="flat",
+        borderwidth=0,
+        highlightthickness=0,
+    )
     help_button.pack(side="right", padx=(0, 5), pady=5)
 
     left_frame = ttk.Frame(root)
