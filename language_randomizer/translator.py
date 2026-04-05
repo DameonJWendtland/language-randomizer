@@ -119,7 +119,15 @@ async def _detect_language_code(translator_client, text, max_retries=3):
     return ""
 
 
-async def _language_step(translator_client, text, value, used_languages, steps):
+async def _language_step(
+    translator_client,
+    text,
+    value,
+    used_languages,
+    steps,
+    source_language_name="",
+    source_language_code="",
+):
     global timeOutCounter
 
     max_retries = 3
@@ -137,17 +145,27 @@ async def _language_step(translator_client, text, value, used_languages, steps):
                     text,
                     dest_language_code,
                 )
-                steps.append((dest_language_name, translated_text, pronunciation))
-                return translated_text
+                steps.append(
+                    {
+                        "source_language_name": source_language_name or "auto",
+                        "source_language_code": source_language_code or "auto",
+                        "target_language_name": dest_language_name,
+                        "target_language_code": dest_language_code or "",
+                        "input_text": text,
+                        "output_text": translated_text,
+                        "transliteration": pronunciation,
+                    }
+                )
+                return translated_text, dest_language_name, dest_language_code
             except Exception as exc:
                 _console_log(f"Error occurred: {exc}, trying again...")
                 timeOutCounter += 1
                 retries += 1
                 await asyncio.sleep(RETRY_DELAY_SECONDS)
 
-        return text
+        return text, dest_language_name, dest_language_code
 
-    return text
+    return text, source_language_name, source_language_code
 
 
 async def _randomizer_async(text, selected_language_name, progress_queue):
@@ -159,6 +177,8 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
     async with Translator() as translator_client:
         detected_lang_code = await _detect_language_code(translator_client, text)
         detected_language = LANGUAGES.get(detected_lang_code, "Unknown")
+        current_language_name = detected_language
+        current_language_code = detected_lang_code or "auto"
 
         selected_language_index = supported_languages.index(selected_language_name)
         selected_language_code = target_languages[selected_language_index]
@@ -199,7 +219,15 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                     progress_queue,
                     status_text=f"Translating to {step_language} ({i + 1}/{total_iteration_display})",
                 )
-                text = await _language_step(translator_client, text, forced_index, used_languages, steps)
+                text, current_language_name, current_language_code = await _language_step(
+                    translator_client,
+                    text,
+                    forced_index,
+                    used_languages,
+                    steps,
+                    source_language_name=current_language_name,
+                    source_language_code=current_language_code,
+                )
             else:
                 if used_languages:
                     last_language = used_languages[-1]
@@ -217,7 +245,15 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                     progress_queue,
                     status_text=f"Translating to {step_language} ({i + 1}/{total_iteration_display})",
                 )
-                text = await _language_step(translator_client, text, random_value, used_languages, steps)
+                text, current_language_name, current_language_code = await _language_step(
+                    translator_client,
+                    text,
+                    random_value,
+                    used_languages,
+                    steps,
+                    source_language_name=current_language_name,
+                    source_language_code=current_language_code,
+                )
 
             if used_languages:
                 _console_log("RDM (" + used_languages[-1] + "): " + text)
@@ -231,6 +267,7 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                 f"({total_iteration_display}/{total_iteration_display})"
             ),
         )
+        final_source_text = text
         text, final_pronunciation = await _safe_translate(translator_client, text, selected_language_code)
         _queue_progress(progress_queue, progress_value=100)
 
@@ -238,7 +275,17 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
     if used_languages:
         lang_chain += " -> ".join(used_languages)
 
-    steps.append((selected_language_name, text, final_pronunciation))
+    steps.append(
+        {
+            "source_language_name": current_language_name or "auto",
+            "source_language_code": current_language_code or "auto",
+            "target_language_name": selected_language_name,
+            "target_language_code": selected_language_code or "",
+            "input_text": final_source_text,
+            "output_text": text,
+            "transliteration": final_pronunciation,
+        }
+    )
     translation_steps = steps
 
     _console_log("END (" + selected_language_name + "): " + text)
