@@ -13,38 +13,119 @@ from .text_direction import set_text_widget_content
 
 
 class AutocompleteCombobox(ttk.Combobox):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self._completion_list = []
+        self._popup = None
+        self._listbox = None
+        self._filtered = []
+
     def set_completion_list(self, completion_list):
         self._completion_list = completion_list
         self["values"] = self._completion_list
 
     def autocomplete(self, event=None):
-        if event.keysym in ("BackSpace", "Left", "Right", "Return", "Escape"):
+        if event and event.keysym in ("Up", "Down", "Return", "Escape", "Tab"):
             return
 
         typed = self.get()
         if typed == "":
             filtered = self._completion_list
         else:
-            filtered = [item for item in self._completion_list if item.lower().startswith(typed.lower())]
+            filtered = [item for item in self._completion_list if typed.lower() in item.lower()]
 
-        self["values"] = filtered
-        self.set(typed)
-        self.icursor(tk.END)
-        self.selection_clear()
-
+        self._filtered = filtered
+        self["values"] = filtered if filtered else self._completion_list
         if filtered:
-            try:
-                self.current(-1)
-            except tk.TclError:
-                pass
+            if typed.strip():
+                self.show_suggestions(filtered)
+            else:
+                self.hide_suggestions()
+        else:
+            self.hide_suggestions()
 
-        self.after(10, self.open_dropdown)
+    def show_suggestions(self, suggestions):
+        if self._popup is None or not self._popup.winfo_exists():
+            self._popup = tk.Toplevel(self)
+            self._popup.overrideredirect(True)
+            self._popup.transient(self.winfo_toplevel())
 
-    def open_dropdown(self):
-        try:
-            self.tk.call("ttk::combobox::popdown", self)
-        except tk.TclError:
-            pass
+            self._listbox = tk.Listbox(self._popup, height=6, activestyle="dotbox")
+            self._listbox.pack(fill="both", expand=True)
+            self._listbox.bind("<ButtonRelease-1>", self.on_listbox_click)
+            self._listbox.bind("<Escape>", self.on_escape)
+
+        self._popup.update_idletasks()
+        x = self.winfo_rootx()
+        y = self.winfo_rooty() + self.winfo_height()
+        width = self.winfo_width()
+        height = min(max(len(suggestions), 1), 8)
+        self._popup.geometry(f"{width}x{(height * 22)}+{x}+{y}")
+        self._popup.lift()
+
+        self._listbox.delete(0, tk.END)
+        for item in suggestions[:50]:
+            self._listbox.insert(tk.END, item)
+
+        if self._listbox.size() > 0:
+            self._listbox.selection_clear(0, tk.END)
+            self._listbox.selection_set(0)
+            self._listbox.activate(0)
+
+        self.after_idle(self.focus_set)
+
+    def hide_suggestions(self):
+        if self._popup is not None and self._popup.winfo_exists():
+            self._popup.destroy()
+        self._popup = None
+        self._listbox = None
+
+    def on_listbox_click(self, event=None):
+        if self._listbox is None:
+            return
+        selection = self._listbox.curselection()
+        if not selection:
+            return
+        value = self._listbox.get(selection[0])
+        self.set(value)
+        self.icursor(tk.END)
+        self.hide_suggestions()
+        self.focus_set()
+
+    def on_down(self, event=None):
+        if self._listbox is None or self._listbox.size() == 0:
+            if self._completion_list:
+                self.show_suggestions(self._completion_list)
+            return "break"
+        self.move_selection(1)
+        return "break"
+
+    def on_up(self, event=None):
+        if self._listbox is None or self._listbox.size() == 0:
+            return "break"
+        self.move_selection(-1)
+        return "break"
+
+    def on_return(self, event=None):
+        if self._listbox is None or self._listbox.size() == 0:
+            return None
+        self.on_listbox_click()
+        return "break"
+
+    def on_escape(self, event=None):
+        self.hide_suggestions()
+        return "break"
+
+    def move_selection(self, delta):
+        if self._listbox is None or self._listbox.size() == 0:
+            return
+        current = self._listbox.curselection()
+        index = current[0] if current else 0
+        next_index = max(0, min(self._listbox.size() - 1, index + delta))
+        self._listbox.selection_clear(0, tk.END)
+        self._listbox.selection_set(next_index)
+        self._listbox.activate(next_index)
+        self._listbox.see(next_index)
 
 
 def create_main_gui(root):
@@ -95,6 +176,10 @@ def create_main_gui(root):
     language_dropdown.set_completion_list(supported_languages)
     language_dropdown.grid(row=3, column=0, sticky="ew", padx=5, pady=2)
     language_dropdown.bind("<KeyRelease>", language_dropdown.autocomplete)
+    language_dropdown.bind("<Down>", language_dropdown.on_down)
+    language_dropdown.bind("<Up>", language_dropdown.on_up)
+    language_dropdown.bind("<Return>", language_dropdown.on_return)
+    language_dropdown.bind("<Escape>", language_dropdown.on_escape)
 
     options_button = ttk.Button(left_frame, text="Options", command=open_options)
     options_button.grid(row=3, column=1, sticky="ew", padx=5, pady=2)
