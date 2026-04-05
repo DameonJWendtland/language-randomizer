@@ -173,11 +173,14 @@ def show_translation_steps():
 def export_steps():
     steps = translator.get_translation_steps()
     export_text = ""
+    separator_line = "-" * 72
 
     if not steps:
         export_text = "No steps recorded."
     else:
         for idx, step in enumerate(steps, 1):
+            if idx > 1:
+                export_text += f"{separator_line}\n"
             lang, step_text, transliteration_text, _, _, _ = _normalize_step(step)
             export_text += f"Step {idx} ({lang}):\n{step_text}\n"
             if _should_show_transliteration(step_text, transliteration_text):
