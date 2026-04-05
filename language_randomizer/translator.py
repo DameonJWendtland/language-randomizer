@@ -15,6 +15,8 @@ forcedLanguages = []
 activateTransliteration = False
 setLoopTimes = 1
 translation_steps = []
+randomSeed = None
+lastUsedSeed = None
 
 MAX_PARALLEL_SENTENCE_REQUESTS = 4
 RETRY_DELAY_SECONDS = 0.6
@@ -122,13 +124,64 @@ def _get_mode_weight_for_score(score, mode):
     return 1.0
 
 
-def _choose_random_language_index(candidate_indices):
+def _sanitize_seed(seed_value):
+    if seed_value is None:
+        return None
+
+    if isinstance(seed_value, bool):
+        return None
+
+    if isinstance(seed_value, int):
+        return seed_value
+
+    text = str(seed_value).strip()
+    if not text:
+        return None
+
+    try:
+        return int(text)
+    except ValueError:
+        return None
+
+
+def set_random_seed(seed_value):
+    global randomSeed, lastUsedSeed
+    randomSeed = _sanitize_seed(seed_value)
+    if randomSeed is not None:
+        lastUsedSeed = randomSeed
+    return randomSeed
+
+
+def _create_rng(seed_value):
+    normalized = _sanitize_seed(seed_value)
+    return rdm.Random(normalized)
+
+
+def _generate_runtime_seed():
+    return rdm.SystemRandom().randint(0, 2_147_483_647)
+
+
+def get_copyable_seed():
+    global lastUsedSeed
+    configured = _sanitize_seed(randomSeed)
+    if configured is not None:
+        lastUsedSeed = configured
+        return configured
+
+    if lastUsedSeed is not None:
+        return lastUsedSeed
+
+    lastUsedSeed = _generate_runtime_seed()
+    return lastUsedSeed
+
+
+def _choose_random_language_index(candidate_indices, rng):
     if not candidate_indices:
-        return rdm.randint(1, len(supported_languages))
+        return rng.randint(1, len(supported_languages))
 
     mode = _sanitize_translation_mode(translationMode)
     if mode == "normal":
-        return rdm.choice(candidate_indices)
+        return rng.choice(candidate_indices)
 
     weights = []
     for index in candidate_indices:
@@ -137,9 +190,9 @@ def _choose_random_language_index(candidate_indices):
         weights.append(_get_mode_weight_for_score(quality_score, mode))
 
     try:
-        return rdm.choices(candidate_indices, weights=weights, k=1)[0]
+        return rng.choices(candidate_indices, weights=weights, k=1)[0]
     except Exception:
-        return rdm.choice(candidate_indices)
+        return rng.choice(candidate_indices)
 
 
 def _console_log(message):
@@ -395,11 +448,15 @@ async def _language_step(
 
 
 async def _randomizer_async(text, selected_language_name, progress_queue):
-    global translation_steps, forcedLanguages, setLoopTimes, translationMode
+    global translation_steps, forcedLanguages, setLoopTimes, translationMode, randomSeed, lastUsedSeed
 
     steps = []
     used_languages = []
     translationMode = _sanitize_translation_mode(translationMode)
+    randomSeed = _sanitize_seed(randomSeed)
+    effective_seed = randomSeed if randomSeed is not None else _generate_runtime_seed()
+    lastUsedSeed = effective_seed
+    rng = _create_rng(effective_seed)
 
     async with Translator() as translator_client:
         original_input_text = _coerce_to_text(text)
@@ -418,6 +475,7 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
         else:
             _console_log("Forced languages: none")
         _console_log("Translation mode: " + translationMode)
+        _console_log("Seed: " + str(effective_seed))
 
         num_steps = setLoopTimes - 1
         if forcedLanguages:
@@ -440,10 +498,10 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
         forced_order = []
 
         if forced_count > 0:
-            forced_positions = rdm.sample(range(num_steps), forced_count)
+            forced_positions = rng.sample(range(num_steps), forced_count)
             forced_positions.sort()
             forced_order = list(forcedLanguages)
-            rdm.shuffle(forced_order)
+            rng.shuffle(forced_order)
 
         for i in range(num_steps):
             if forced_count > 0 and i in forced_positions:
@@ -476,10 +534,11 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                         for j in range(1, len(supported_languages) + 1)
                         if supported_languages[j - 1] != last_language
                     ]
-                    random_value = _choose_random_language_index(candidate_indices)
+                    random_value = _choose_random_language_index(candidate_indices, rng)
                 else:
                     random_value = _choose_random_language_index(
-                        list(range(1, len(supported_languages) + 1))
+                        list(range(1, len(supported_languages) + 1)),
+                        rng,
                     )
 
                 step_language = supported_languages[random_value - 1]
