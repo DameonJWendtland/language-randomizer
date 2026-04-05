@@ -1,5 +1,7 @@
-﻿import tkinter as tk
+import tkinter as tk
 import unicodedata
+import urllib.parse
+import webbrowser
 from tkinter import filedialog, ttk
 
 from .. import translator
@@ -19,12 +21,57 @@ def _contains_non_latin_letters(text):
 
 
 def _normalize_step(step):
+    if isinstance(step, dict):
+        target_language_name = step.get("target_language_name", "Unknown")
+        step_text = str(step.get("output_text", ""))
+        transliteration_text = step.get("transliteration", "") or ""
+        source_text = str(step.get("input_text", step_text))
+        source_language_code = step.get("source_language_code", "") or "auto"
+        target_language_lookup = str(target_language_name).lower()
+        target_language_code = step.get("target_language_code", "") or translator.language_name_to_code.get(
+            target_language_lookup, ""
+        )
+        return (
+            target_language_name,
+            step_text,
+            transliteration_text,
+            source_text,
+            source_language_code,
+            target_language_code,
+        )
+
     if isinstance(step, (list, tuple)):
         if len(step) >= 3:
-            return step[0], step[1], step[2] or ""
+            target_language_name = step[0]
+            step_text = str(step[1])
+            transliteration_text = step[2] or ""
+            target_language_lookup = str(target_language_name).lower()
+            target_language_code = translator.language_name_to_code.get(target_language_lookup, "")
+            return target_language_name, step_text, transliteration_text, step_text, "auto", target_language_code
         if len(step) == 2:
-            return step[0], step[1], ""
-    return "Unknown", str(step), ""
+            target_language_name = step[0]
+            step_text = str(step[1])
+            target_language_lookup = str(target_language_name).lower()
+            target_language_code = translator.language_name_to_code.get(target_language_lookup, "")
+            return target_language_name, step_text, "", step_text, "auto", target_language_code
+
+    text = str(step)
+    return "Unknown", text, "", text, "auto", ""
+
+
+def _open_in_google_translate(source_text, source_language_code, target_language_code):
+    if not target_language_code or not source_text.strip():
+        return
+
+    query = urllib.parse.urlencode(
+        {
+            "sl": source_language_code or "auto",
+            "tl": target_language_code,
+            "text": source_text,
+            "op": "translate",
+        }
+    )
+    webbrowser.open(f"https://translate.google.com/?{query}")
 
 
 def _should_show_transliteration(step_text, transliteration_text):
@@ -93,8 +140,9 @@ def show_translation_steps():
         no_label = ttk.Label(scrollable_frame, text="No steps recorded.", font=("TkDefaultFont", 20))
         no_label.pack(padx=10, pady=10)
     else:
+        _, _, _, _, _, final_target_lang_code = _normalize_step(steps[-1])
         for idx, step in enumerate(steps, 1):
-            lang, step_text, transliteration_text = _normalize_step(step)
+            lang, step_text, transliteration_text, _, _, target_lang_code = _normalize_step(step)
 
             lang_label = ttk.Label(scrollable_frame, text=f"Step {idx} ({lang}):")
             lang_label.pack(anchor="w", padx=10, pady=(10, 2))
@@ -106,6 +154,17 @@ def show_translation_steps():
 
             if _should_show_transliteration(step_text, transliteration_text):
                 _build_transliteration_widget(scrollable_frame, transliteration_text)
+
+            open_google_button = ttk.Button(
+                scrollable_frame,
+                text="See on Google Translate",
+                command=lambda s=step_text, sl=target_lang_code, tl=final_target_lang_code: _open_in_google_translate(
+                    s, sl, tl
+                ),
+            )
+            if not step_text.strip() or not target_lang_code or not final_target_lang_code:
+                open_google_button.configure(state="disabled")
+            open_google_button.pack(anchor="w", padx=10, pady=(0, 10))
 
     steps_win.grid_rowconfigure(1, weight=1)
     steps_win.grid_columnconfigure(0, weight=1)
@@ -119,7 +178,7 @@ def export_steps():
         export_text = "No steps recorded."
     else:
         for idx, step in enumerate(steps, 1):
-            lang, step_text, transliteration_text = _normalize_step(step)
+            lang, step_text, transliteration_text, _, _, _ = _normalize_step(step)
             export_text += f"Step {idx} ({lang}):\n{step_text}\n"
             if _should_show_transliteration(step_text, transliteration_text):
                 export_text += f"Transliteration: {transliteration_text}\n"
