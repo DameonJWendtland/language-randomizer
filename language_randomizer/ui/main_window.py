@@ -5,6 +5,7 @@ from tkinter import ttk
 
 from .. import translator
 from ..translator import randomizer, supported_languages
+from .context_menu import bind_context_menu
 from .help_window import open_help
 from .menu import open_menu
 from .options import open_options
@@ -165,6 +166,7 @@ def create_main_gui(root):
     text_field = tk.Text(left_frame, wrap=tk.WORD)
     text_field.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
     text_field.insert("1.0", "Insert your Text here...")
+    bind_context_menu(text_field)
 
     lang_label = ttk.Label(left_frame, text="Select target language:")
     lang_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=5, pady=(10, 2))
@@ -175,6 +177,7 @@ def create_main_gui(root):
     language_dropdown = AutocompleteCombobox(left_frame, textvariable=language_selector, state="normal")
     language_dropdown.set_completion_list(supported_languages)
     language_dropdown.grid(row=3, column=0, sticky="ew", padx=5, pady=2)
+    bind_context_menu(language_dropdown)
     language_dropdown.bind("<KeyRelease>", language_dropdown.autocomplete)
     language_dropdown.bind("<Down>", language_dropdown.on_down)
     language_dropdown.bind("<Up>", language_dropdown.on_up)
@@ -203,6 +206,7 @@ def create_main_gui(root):
     validate_command = (left_frame.register(validate_input), "%P")
     number_entry = tk.Entry(left_frame, textvariable=iteration_var, validate="key", validatecommand=validate_command)
     number_entry.grid(row=5, column=0, columnspan=2, sticky="ew", padx=5, pady=2)
+    bind_context_menu(number_entry)
 
     progress_bar = ttk.Progressbar(left_frame, orient="horizontal", length=200, mode="determinate")
     progress_bar.grid(row=6, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 2))
@@ -246,6 +250,7 @@ def create_main_gui(root):
     output_text = tk.Text(right_frame, wrap=tk.WORD)
     output_text.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
     set_text_widget_content(output_text, "")
+    bind_context_menu(output_text)
 
     used_lang_label = ttk.Label(right_frame, text="Used Languages:")
     used_lang_label.grid(row=2, column=0, sticky="w", padx=5, pady=5)
@@ -256,6 +261,7 @@ def create_main_gui(root):
     used_lang_text = tk.Text(right_frame, wrap=tk.WORD, height=3)
     used_lang_text.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
     used_lang_text.config(state="disabled")
+    bind_context_menu(used_lang_text)
 
     for i in range(4):
         right_frame.rowconfigure(i, weight=0)
