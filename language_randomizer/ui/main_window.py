@@ -215,11 +215,27 @@ def create_main_gui(root):
     language_dropdown.bind("<Return>", language_dropdown.on_return)
     language_dropdown.bind("<Escape>", language_dropdown.on_escape)
 
-    options_button = ttk.Button(left_frame, text="Options", command=open_options)
+    max_forced_languages = len(supported_languages)
+    forced_lang_status_var = tk.StringVar(left_frame)
+
+    def refresh_forced_languages_label(forced_list=None):
+        forced_count = len(forced_list) if forced_list is not None else len(translator.forcedLanguages)
+        forced_lang_status_var.set(f"Forced Languages: {forced_count} / {max_forced_languages}")
+
+    refresh_forced_languages_label()
+
+    options_button = ttk.Button(
+        left_frame,
+        text="Options",
+        command=lambda: open_options(on_apply=refresh_forced_languages_label),
+    )
     options_button.grid(row=3, column=1, sticky="ew", padx=5, pady=2)
 
+    forced_lang_status_label = ttk.Label(left_frame, textvariable=forced_lang_status_var, foreground="grey")
+    forced_lang_status_label.grid(row=4, column=0, columnspan=2, sticky="w", padx=5, pady=(2, 8))
+
     iter_label = ttk.Label(left_frame, text="Randomized iterations:")
-    iter_label.grid(row=4, column=0, columnspan=2, sticky="w", padx=5, pady=(10, 2))
+    iter_label.grid(row=5, column=0, columnspan=2, sticky="w", padx=5, pady=(10, 2))
 
     iteration_var = tk.StringVar(left_frame)
     iteration_var.set("")
@@ -236,16 +252,16 @@ def create_main_gui(root):
 
     validate_command = (left_frame.register(validate_input), "%P")
     number_entry = tk.Entry(left_frame, textvariable=iteration_var, validate="key", validatecommand=validate_command)
-    number_entry.grid(row=5, column=0, columnspan=2, sticky="ew", padx=5, pady=2)
+    number_entry.grid(row=6, column=0, columnspan=2, sticky="ew", padx=5, pady=2)
     bind_context_menu(number_entry)
 
     progress_bar = ttk.Progressbar(left_frame, orient="horizontal", length=200, mode="determinate")
-    progress_bar.grid(row=6, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 2))
+    progress_bar.grid(row=7, column=0, columnspan=2, sticky="ew", padx=5, pady=(10, 2))
 
     translate_button = ttk.Button(left_frame, text="Translate Text")
-    translate_button.grid(row=7, column=0, columnspan=2, sticky="ew", padx=5, pady=(2, 5))
+    translate_button.grid(row=8, column=0, columnspan=2, sticky="ew", padx=5, pady=(2, 5))
 
-    for i in range(8):
+    for i in range(9):
         left_frame.rowconfigure(i, weight=0)
     left_frame.rowconfigure(1, weight=1)
 
