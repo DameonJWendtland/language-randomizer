@@ -77,5 +77,4 @@ python -m pip install --upgrade googletrans==4.0.2
 
 ## Attribution
 
-App icon by photo3idea_studio (Flaticon):  
-https://www.flaticon.com/free-icons/translate
+<a href="https://www.flaticon.com/free-icons/translate" title="translate icons">Translate icons created by photo3idea_studio - Flaticon</a>
