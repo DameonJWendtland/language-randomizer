@@ -7,7 +7,7 @@ from .context_menu import bind_context_menu
 from .mousewheel import enable_vertical_mousewheel
 
 
-def open_options():
+def open_options(on_apply=None):
     options_win = tk.Toplevel()
     options_win.title("Options - Force Languages")
     options_win.geometry("700x400")
@@ -58,6 +58,8 @@ def open_options():
             if var.get():
                 translator.forcedLanguages.append(lang)
         update_settings(forced_languages=translator.forcedLanguages)
+        if callable(on_apply):
+            on_apply(list(translator.forcedLanguages))
         options_win.destroy()
         print("Forced languages:", translator.forcedLanguages)
 
