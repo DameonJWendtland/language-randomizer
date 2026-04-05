@@ -34,7 +34,7 @@ def open_options():
     canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
     canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
 
-    info_text = tk.Text(scrollable_frame, wrap=tk.WORD, height=5)
+    info_text = tk.Text(scrollable_frame, wrap=tk.WORD, height=4)
     info_text.insert(
         "1.0",
         "You may select languages that must be included in the randomizer. "

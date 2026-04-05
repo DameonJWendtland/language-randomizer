@@ -3,6 +3,7 @@ import tkinter.font as tk_font
 import webbrowser
 from tkinter import ttk
 
+from .. import translator
 from .window_icon import apply_window_icon
 
 
@@ -27,7 +28,19 @@ def show_settings(menu_win, main_frame):
     theme_entry = ttk.Entry(main_frame)
     theme_entry.pack(pady=5, fill="x")
 
-    apply_btn = ttk.Button(main_frame, text="Apply", command=lambda: apply_settings(font_dropdown, theme_entry))
+    transliteration_var = tk.BooleanVar(value=translator.activateTransliteration)
+    transliteration_chk = ttk.Checkbutton(
+        main_frame,
+        text="Activate Transliteration",
+        variable=transliteration_var,
+    )
+    transliteration_chk.pack(pady=(8, 4), anchor="w")
+
+    apply_btn = ttk.Button(
+        main_frame,
+        text="Apply",
+        command=lambda: apply_settings(font_dropdown, theme_entry, transliteration_var),
+    )
     apply_btn.pack(pady=5)
 
     back_btn = ttk.Button(main_frame, text="Back", command=lambda: show_main_menu(menu_win, main_frame))
@@ -59,12 +72,14 @@ def show_main_menu(menu_win, main_frame):
     close_btn.pack(pady=10)
 
 
-def apply_settings(font_dropdown, theme_entry):
+def apply_settings(font_dropdown, theme_entry, transliteration_var):
     selected_font = font_dropdown.get()
     root = tk._default_root
     if root is not None:
         root.option_add("*Font", f"{selected_font} 12")
+    translator.activateTransliteration = transliteration_var.get()
     print("Applied font:", selected_font)
+    print("Activate transliteration:", translator.activateTransliteration)
 
 
 def open_menu():

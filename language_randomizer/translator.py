@@ -10,13 +10,23 @@ target_languages = list(LANGUAGES.keys())
 
 timeOutCounter = 0
 forcedLanguages = []
+activateTransliteration = False
 setLoopTimes = 1
 translation_steps = []
+
+
+def _console_log(message):
+    try:
+        print(message)
+    except UnicodeEncodeError:
+        fallback = str(message).encode("ascii", errors="replace").decode("ascii")
+        print(fallback)
 
 
 async def _safe_translate(translator_client, text, dest_language_code, max_retries=3):
     sentences = re.split(r"(?<=[.!?])\s+", text)
     translated_sentences = []
+    pronunciation_sentences = []
 
     for sentence in sentences:
         if sentence.strip():
@@ -26,19 +36,24 @@ async def _safe_translate(translator_client, text, dest_language_code, max_retri
                     result = await translator_client.translate(sentence, dest=dest_language_code)
                     if result is not None and getattr(result, "text", None):
                         translated_sentences.append(result.text)
+                        pronunciation_sentences.append(getattr(result, "pronunciation", "") or "")
                         break
                     raise ValueError("No translation received")
                 except Exception as exc:
-                    print(f"Error translating sentence '{sentence}': {exc}")
+                    _console_log(f"Error translating sentence '{sentence}': {exc}")
                     retries += 1
                     await asyncio.sleep(1)
                     if retries == max_retries:
-                        print(f"Translation for sentence '{sentence}' failed. Using original sentence.")
+                        _console_log(f"Translation for sentence '{sentence}' failed. Using original sentence.")
                         translated_sentences.append(sentence)
+                        pronunciation_sentences.append("")
         else:
             translated_sentences.append(sentence)
+            pronunciation_sentences.append("")
 
-    return " ".join(translated_sentences)
+    translated_text = " ".join(translated_sentences)
+    pronunciation_text = " ".join(pronunciation_sentences).strip()
+    return translated_text, pronunciation_text
 
 
 async def _detect_language_code(translator_client, text, max_retries=3):
@@ -51,7 +66,7 @@ async def _detect_language_code(translator_client, text, max_retries=3):
                 return detected_lang_code
             raise ValueError("No language detected")
         except Exception as exc:
-            print(f"Error detecting language: {exc}")
+            _console_log(f"Error detecting language: {exc}")
             retries += 1
             await asyncio.sleep(1)
 
@@ -71,11 +86,15 @@ async def _language_step(translator_client, text, value, used_languages, steps):
 
         while retries < max_retries:
             try:
-                translated_text = await _safe_translate(translator_client, text, dest_language_code)
-                steps.append((dest_language_name, translated_text))
+                translated_text, pronunciation = await _safe_translate(
+                    translator_client,
+                    text,
+                    dest_language_code,
+                )
+                steps.append((dest_language_name, translated_text, pronunciation))
                 return translated_text
             except Exception as exc:
-                print(f"Error occurred: {exc}, trying again...")
+                _console_log(f"Error occurred: {exc}, trying again...")
                 timeOutCounter += 1
                 retries += 1
                 await asyncio.sleep(1)
@@ -98,11 +117,11 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
         selected_language_index = supported_languages.index(selected_language_name)
         selected_language_code = target_languages[selected_language_index]
 
-        print("\nTarget language: " + selected_language_name)
+        _console_log("\nTarget language: " + selected_language_name)
         if forcedLanguages:
-            print("Forced languages: " + ", ".join(forcedLanguages))
+            _console_log("Forced languages: " + ", ".join(forcedLanguages))
         else:
-            print("Forced languages: none")
+            _console_log("Forced languages: none")
 
         num_steps = setLoopTimes - 1
         if forcedLanguages:
@@ -140,21 +159,21 @@ async def _randomizer_async(text, selected_language_name, progress_queue):
                 text = await _language_step(translator_client, text, random_value, used_languages, steps)
 
             if used_languages:
-                print("RDM (" + used_languages[-1] + "): " + text)
+                _console_log("RDM (" + used_languages[-1] + "): " + text)
 
             progress_queue.put(100 * (1 + (i + 1)) / total_steps)
 
-        text = await _safe_translate(translator_client, text, selected_language_code)
+        text, final_pronunciation = await _safe_translate(translator_client, text, selected_language_code)
         progress_queue.put(100)
 
     lang_chain = "Detected language: [" + detected_language + "]\n"
     if used_languages:
         lang_chain += " -> ".join(used_languages)
 
-    steps.append((selected_language_name, text))
+    steps.append((selected_language_name, text, final_pronunciation))
     translation_steps = steps
 
-    print("END (" + selected_language_name + "): " + text)
+    _console_log("END (" + selected_language_name + "): " + text)
 
     return text, lang_chain, selected_language_name
 

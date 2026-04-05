@@ -9,6 +9,7 @@ from .help_window import open_help
 from .menu import open_menu
 from .options import open_options
 from .show_steps import show_translation_steps
+from .text_direction import set_text_widget_content
 
 
 class AutocompleteCombobox(ttk.Combobox):
@@ -159,8 +160,7 @@ def create_main_gui(root):
 
     output_text = tk.Text(right_frame, wrap=tk.WORD)
     output_text.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
-    output_text.insert("1.0", "")
-    output_text.config(state="disabled")
+    set_text_widget_content(output_text, "")
 
     used_lang_label = ttk.Label(right_frame, text="Used Languages:")
     used_lang_label.grid(row=2, column=0, sticky="w", padx=5, pady=5)
@@ -198,10 +198,7 @@ def create_main_gui(root):
     def run_randomizer(text):
         result_text, lang_chain, selected_language_name = randomizer(text, language_selector, progress_queue)
 
-        output_text.config(state="normal")
-        output_text.delete("1.0", tk.END)
-        output_text.insert("1.0", result_text)
-        output_text.config(state="disabled")
+        set_text_widget_content(output_text, result_text)
 
         used_lang_text.config(state="normal")
         used_lang_text.delete("1.0", tk.END)
