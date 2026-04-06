@@ -79,6 +79,6 @@
   "compare_no_data": "Ingen oversættelse endnu. Kør først en oversættelse.",
   "compare_similarity_semantic": "Semantisk lighed: {value}",
   "compare_similarity_textual": "Tekstlighed: {value}",
-  "compare_semantic_unavailable": "Semantisk model er ikke tilgængelig. Installer valgfri pakke: sentence-transformers",
+  "compare_semantic_unavailable": "Semantisk model er ikke tilgængelig.",
   "compare_semantic_loading": "Semantisk model indl?ses i baggrunden..."
 }

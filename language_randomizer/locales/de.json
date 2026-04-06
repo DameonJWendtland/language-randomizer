@@ -79,6 +79,6 @@
   "compare_no_data": "Noch keine Übersetzung vorhanden. Bitte zuerst übersetzen.",
   "compare_similarity_semantic": "Semantische Ähnlichkeit: {value}",
   "compare_similarity_textual": "Textähnlichkeit: {value}",
-  "compare_semantic_unavailable": "Semantisches Modell nicht verfügbar. Optionales Paket installieren: sentence-transformers",
+  "compare_semantic_unavailable": "Semantisches Modell nicht verfügbar.",
   "compare_semantic_loading": "Semantisches Modell wird im Hintergrund geladen..."
 }

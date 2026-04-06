@@ -10,6 +10,9 @@ UI_LANGUAGE_OPTIONS = [
     ("de", "Deutsch"),
     ("da", "Dansk"),
     ("sv", "Svenska"),
+    ("es", "Español"),
+    ("fr", "Français"),
+    ("ru", "Русский"),
 ]
 
 _LANGUAGE_LABELS = {code: label for code, label in UI_LANGUAGE_OPTIONS}

@@ -79,6 +79,6 @@
   "compare_no_data": "Ingen översättning ännu. Kör en översättning först.",
   "compare_similarity_semantic": "Semantisk likhet: {value}",
   "compare_similarity_textual": "Textlikhet: {value}",
-  "compare_semantic_unavailable": "Semantisk modell är inte tillgänglig. Installera valfritt paket: sentence-transformers",
+  "compare_semantic_unavailable": "Semantisk modell är inte tillgänglig.",
   "compare_semantic_loading": "Semantisk modell laddas i bakgrunden..."
 }
