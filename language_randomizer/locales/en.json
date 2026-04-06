@@ -4,7 +4,7 @@
   "seed_button_with_value": "Seed: {value}",
   "seed_auto_value": "Auto",
   "seed_dialog_title": "Set Seed",
-  "seed_dialog_label": "Enter an integer seed. Leave empty for automatic randomness.",
+  "seed_dialog_label": "Enter an integer seed. Leave empty for automatic randomness.\n\nWhen you save a manual seed, the current iteration count is saved with it too.",
   "seed_auto_button": "Auto",
   "seed_copy_button": "Copy Seed",
   "seed_save_button": "Save Seed",
