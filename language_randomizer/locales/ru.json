@@ -4,7 +4,7 @@
   "seed_button_with_value": "Seed: {value}",
   "seed_auto_value": "Авто",
   "seed_dialog_title": "Установить seed",
-  "seed_dialog_label": "Введите целое число для seed. Оставьте поле пустым для автоматической случайности.",
+  "seed_dialog_label": "Введите целое число для seed. Оставьте поле пустым для автоматической случайности.\n\nПри сохранении ручного seed также сохраняется текущее количество итераций.",
   "seed_auto_button": "Авто",
   "seed_copy_button": "Копировать seed",
   "seed_save_button": "Сохранить seed",
