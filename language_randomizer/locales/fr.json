@@ -4,7 +4,7 @@
   "seed_button_with_value": "Seed : {value}",
   "seed_auto_value": "Auto",
   "seed_dialog_title": "Définir la seed",
-  "seed_dialog_label": "Entrez un nombre entier comme seed. Laissez vide pour utiliser une génération aléatoire automatique.",
+  "seed_dialog_label": "Entrez un nombre entier comme seed. Laissez vide pour utiliser une génération aléatoire automatique.\n\nLorsque vous enregistrez une seed manuelle, le nombre actuel d'itérations est également enregistré.",
   "seed_auto_button": "Auto",
   "seed_copy_button": "Copier la seed",
   "seed_save_button": "Enregistrer la seed",
