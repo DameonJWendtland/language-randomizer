@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..i18n import t
+from ..paths import SEMANTIC_MODEL_DIR
 from .context_menu import bind_context_menu
 from .window_icon import apply_window_icon
 
@@ -17,6 +18,14 @@ _semantic_model_lock = threading.Lock()
 
 def _tokenize(text):
     return re.findall(r"\S+|\s+", text or "")
+
+
+def _get_semantic_model_source():
+    modules_file = SEMANTIC_MODEL_DIR / "modules.json"
+    config_file = SEMANTIC_MODEL_DIR / "config_sentence_transformers.json"
+    if modules_file.exists() or config_file.exists():
+        return str(SEMANTIC_MODEL_DIR)
+    return _SEMANTIC_MODEL_NAME
 
 
 def _load_semantic_model():
@@ -40,7 +49,7 @@ def _load_semantic_model():
                 _semantic_model_failed = True
                 return None
 
-            _semantic_model = sentence_transformer_cls(_SEMANTIC_MODEL_NAME)
+            _semantic_model = sentence_transformer_cls(_get_semantic_model_source())
         except Exception:
             _semantic_model_failed = True
             _semantic_model = None
