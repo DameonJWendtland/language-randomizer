@@ -4,7 +4,7 @@
   "seed_button_with_value": "Seed: {value}",
   "seed_auto_value": "Auto",
   "seed_dialog_title": "Ange seed",
-  "seed_dialog_label": "Ange ett heltal som seed. Lämna tomt för automatisk slump.",
+  "seed_dialog_label": "Ange ett heltal som seed. Lämna tomt för automatisk slump.\n\nNär du sparar ett manuellt seed sparas även det aktuella antalet iterationer.",
   "seed_auto_button": "Auto",
   "seed_copy_button": "Kopiera seed",
   "seed_save_button": "Spara seed",
