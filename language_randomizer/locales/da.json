@@ -4,7 +4,7 @@
   "seed_button_with_value": "Seed: {value}",
   "seed_auto_value": "Auto",
   "seed_dialog_title": "Sæt seed",
-  "seed_dialog_label": "Indtast et heltal som seed. Lad feltet være tomt for automatisk tilfældighed.",
+  "seed_dialog_label": "Indtast et heltal som seed. Lad feltet være tomt for automatisk tilfældighed.\n\nNår du gemmer et manuelt seed, gemmes det aktuelle antal iterationer også.",
   "seed_auto_button": "Auto",
   "seed_copy_button": "Kopiér seed",
   "seed_save_button": "Gem seed",
