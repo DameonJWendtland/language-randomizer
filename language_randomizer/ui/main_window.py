@@ -195,6 +195,17 @@ def create_main_gui(root):
         if seed_button.winfo_exists():
             seed_button.configure(text=_seed_button_label())
 
+    def _get_effective_iteration_count():
+        raw_value = iteration_var.get().strip()
+        if raw_value:
+            try:
+                parsed = int(raw_value)
+                if parsed > 0:
+                    return parsed
+            except ValueError:
+                pass
+        return translator.setLoopTimes if translator.setLoopTimes > 0 else 1
+
     def open_seed_dialog():
         dialog = tk.Toplevel(root)
         dialog.title(t("seed_dialog_title"))
@@ -208,6 +219,13 @@ def create_main_gui(root):
 
         label = ttk.Label(container, text=t("seed_dialog_label"), justify="left", wraplength=320)
         label.pack(fill="x", pady=(0, 8))
+
+        def _refresh_seed_label_wrap(_event=None):
+            container_width = max(container.winfo_width(), dialog.winfo_width())
+            label.configure(wraplength=max(container_width - 28, 220))
+
+        container.bind("<Configure>", _refresh_seed_label_wrap)
+        dialog.bind("<Configure>", _refresh_seed_label_wrap)
 
         seed_var = tk.StringVar(value="" if translator.randomSeed is None else str(translator.randomSeed))
         entry = ttk.Entry(container, textvariable=seed_var)
@@ -263,11 +281,26 @@ def create_main_gui(root):
                 return
 
             translator.set_random_seed(parsed_seed)
-            update_settings(random_seed=translator.randomSeed)
+            if translator.randomSeed is None:
+                update_settings(random_seed=None, random_seed_iterations=None)
+            else:
+                saved_iterations = _get_effective_iteration_count()
+                translator.setLoopTimes = saved_iterations
+                iteration_var.set(str(saved_iterations))
+                update_settings(
+                    random_seed=translator.randomSeed,
+                    random_seed_iterations=saved_iterations,
+                )
             refresh_seed_button()
             dialog.destroy()
 
-        auto_button = ttk.Button(button_row, text=t("seed_auto_button"), command=lambda: close_with_seed(None))
+        def auto_seed():
+            translator.set_random_seed(None)
+            update_settings(random_seed=None, random_seed_iterations=None)
+            refresh_seed_button()
+            dialog.destroy()
+
+        auto_button = ttk.Button(button_row, text=t("seed_auto_button"), command=auto_seed)
         auto_button.pack(side="left")
 
         copy_button = ttk.Button(button_row, text=t("seed_copy_button"), command=copy_seed)
@@ -287,6 +320,7 @@ def create_main_gui(root):
 
         dialog.update_idletasks()
         dialog.geometry(f"{max(dialog.winfo_reqwidth() + 8, 360)}x{max(dialog.winfo_reqheight() + 8, 150)}")
+        _refresh_seed_label_wrap()
         entry.focus_set()
         entry.selection_range(0, tk.END)
 
@@ -384,7 +418,10 @@ def create_main_gui(root):
     iter_label.grid(row=5, column=0, columnspan=2, sticky="w", padx=5, pady=(10, 2))
 
     iteration_var = tk.StringVar(left_frame)
-    iteration_var.set("")
+    if translator.randomSeed is not None and translator.setLoopTimes > 0:
+        iteration_var.set(str(translator.setLoopTimes))
+    else:
+        iteration_var.set("")
 
     def validate_input(new_value):
         if new_value == "":
