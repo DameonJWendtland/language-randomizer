@@ -53,7 +53,7 @@ Choose one of these commands:
 ```bash
 python main.py
 ```
-
+```
 python -m language_randomizer
 ```
 
