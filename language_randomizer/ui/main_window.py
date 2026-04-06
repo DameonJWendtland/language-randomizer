@@ -175,6 +175,7 @@ def create_main_gui(root):
 
     progress_queue = queue.Queue()
     last_run_data = {"original": "", "final": ""}
+    queue_after_id = {"value": None}
 
     def refresh_ui(force_rebuild=False):
         root.title(t("app_title"))
@@ -517,6 +518,11 @@ def create_main_gui(root):
     right_frame.rowconfigure(1, weight=1)
 
     def update_progress_bar(value=None, status_text=None):
+        try:
+            if not root.winfo_exists():
+                return
+        except tk.TclError:
+            return
         if value is not None:
             progress_bar["value"] = value
         if status_text:
@@ -524,6 +530,11 @@ def create_main_gui(root):
         root.update_idletasks()
 
     def check_queue():
+        try:
+            if not root.winfo_exists():
+                return
+        except tk.TclError:
+            return
         try:
             while True:
                 payload = progress_queue.get_nowait()
@@ -538,7 +549,22 @@ def create_main_gui(root):
                     update_progress_bar(payload)
         except queue.Empty:
             pass
-        root.after(100, check_queue)
+        try:
+            queue_after_id["value"] = root.after(100, check_queue)
+        except tk.TclError:
+            return
+
+    def cleanup_queue_polling(event=None):
+        if event is not None and event.widget is not root:
+            return
+        after_id = queue_after_id.get("value")
+        if after_id is None:
+            return
+        try:
+            root.after_cancel(after_id)
+        except tk.TclError:
+            pass
+        queue_after_id["value"] = None
 
     def on_button_click():
         entered_text = text_field.get("1.0", tk.END).strip()
@@ -566,6 +592,7 @@ def create_main_gui(root):
         root.after(0, lambda: translate_button.config(state="normal"))
 
     translate_button.config(command=on_button_click)
+    root.bind("<Destroy>", cleanup_queue_polling, add="+")
     check_queue()
 
     bottom_frame = ttk.Frame(root)
