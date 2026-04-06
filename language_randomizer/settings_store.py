@@ -12,6 +12,7 @@ DEFAULT_SETTINGS = {
     "forced_languages": [],
     "translation_mode": "normal",
     "random_seed": None,
+    "random_seed_iterations": None,
 }
 
 _VALID_TRANSLATION_MODES = {"normal", "chaos", "safe"}
@@ -42,6 +43,7 @@ def _sanitize_settings(raw_settings):
     forced_languages = raw_settings.get("forced_languages", [])
     translation_mode = raw_settings.get("translation_mode", "normal")
     random_seed = raw_settings.get("random_seed", None)
+    random_seed_iterations = raw_settings.get("random_seed_iterations", None)
 
     sanitized["font_family"] = str(font_family) if font_family else ""
     sanitized["theme"] = str(theme) if theme else ""
@@ -50,6 +52,7 @@ def _sanitize_settings(raw_settings):
     normalized_mode = str(translation_mode).strip().lower() if translation_mode else "normal"
     sanitized["translation_mode"] = normalized_mode if normalized_mode in _VALID_TRANSLATION_MODES else "normal"
     sanitized["random_seed"] = _sanitize_random_seed(random_seed)
+    sanitized["random_seed_iterations"] = _sanitize_positive_int(random_seed_iterations)
 
     if isinstance(forced_languages, list):
         sanitized["forced_languages"] = [str(lang) for lang in forced_languages if isinstance(lang, str)]
@@ -75,6 +78,26 @@ def _sanitize_random_seed(seed_value):
         return int(text)
     except ValueError:
         return None
+
+
+def _sanitize_positive_int(value):
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value > 0 else None
+
+    text = str(value).strip()
+    if not text:
+        return None
+
+    try:
+        parsed = int(text)
+    except ValueError:
+        return None
+
+    return parsed if parsed > 0 else None
 
 
 def load_settings():
