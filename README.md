@@ -15,7 +15,6 @@ It is intentionally experimental and not meant for production-grade translation 
 
 ```text
 language-randomizer/
-|-- App.py
 |-- main.py
 |-- language_randomizer/
 |   |-- __init__.py
@@ -33,8 +32,6 @@ language-randomizer/
 |       |-- options.py
 |       |-- show_steps.py
 |       `-- window_icon.py
-`-- packaging/
-    `-- pyinstaller/
 ```
 
 ## Requirements
@@ -57,11 +54,6 @@ Choose one of these commands:
 python main.py
 ```
 
-```bash
-python App.py
-```
-
-```bash
 python -m language_randomizer
 ```
 
