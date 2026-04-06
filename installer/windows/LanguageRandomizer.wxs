@@ -1,0 +1,97 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package
+      Id="DameonJWendtland.LanguageRandomizer"
+      Name="Language Randomizer"
+      Manufacturer="$(Manufacturer)"
+      Version="$(Version)"
+      Scope="perMachine"
+      Language="1033"
+      InstallerVersion="500">
+    <MediaTemplate EmbedCab="yes" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <Icon Id="AppIcon.ico" SourceFile="$(AppIconPath)" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="$(ProductUrl)" />
+    <Property Id="ARPHELPLINK" Value="$(ProductUrl)" />
+    <Property Id="WixUILicenseRtf" Value="$(LicenseRtfPath)" />
+    <Property Id="ApplicationFolderName" Value="Language Randomizer" />
+    <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
+
+    <ui:WixUI Id="WixUI_Advanced" />
+    <WixVariable Id="override WixUISupportPerUser" Value="0" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="APPLICATIONFOLDER" Name="Language Randomizer" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ProgramMenuDir" Name="Language Randomizer" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Feature
+        Id="MainFeature"
+        Title="Language Randomizer"
+        Description="Main application files"
+        Level="1"
+        Display="expand"
+        ConfigurableDirectory="APPLICATIONFOLDER">
+      <Files Include="!(bindpath.AppBundle)\**" Directory="APPLICATIONFOLDER">
+        <Exclude Files="!(bindpath.AppBundle)\LanguageRandomizer.exe" />
+      </Files>
+
+      <File
+          Id="MainExecutableFile"
+          Directory="APPLICATIONFOLDER"
+          Source="!(bindpath.AppBundle)\LanguageRandomizer.exe"
+          KeyPath="yes" />
+
+      <Component Id="ProgramMenuShortcutComponent" Directory="ProgramMenuDir">
+        <Shortcut
+            Id="ApplicationStartMenuShortcut"
+            Name="Language Randomizer"
+            Description="Launch Language Randomizer"
+            Target="[APPLICATIONFOLDER]LanguageRandomizer.exe"
+            WorkingDirectory="APPLICATIONFOLDER"
+            Icon="AppIcon.ico"
+            IconIndex="0" />
+        <RemoveFolder Id="RemoveProgramMenuDir" On="uninstall" />
+        <RegistryValue
+            Root="HKCU"
+            Key="Software\DameonJWendtland\LanguageRandomizer"
+            Name="StartMenuShortcut"
+            Type="integer"
+            Value="1"
+            KeyPath="yes" />
+      </Component>
+
+      <Feature
+          Id="DesktopShortcutFeature"
+          Title="Desktop shortcut"
+          Description="Create a shortcut on the desktop"
+          Level="1000"
+          AllowAdvertise="no">
+        <Component Id="DesktopShortcutComponent" Directory="DesktopFolder">
+          <Shortcut
+              Id="ApplicationDesktopShortcut"
+              Name="Language Randomizer"
+              Description="Launch Language Randomizer"
+              Target="[APPLICATIONFOLDER]LanguageRandomizer.exe"
+              WorkingDirectory="APPLICATIONFOLDER"
+              Icon="AppIcon.ico"
+              IconIndex="0" />
+          <RegistryValue
+              Root="HKCU"
+              Key="Software\DameonJWendtland\LanguageRandomizer"
+              Name="DesktopShortcut"
+              Type="integer"
+              Value="1"
+              KeyPath="yes" />
+        </Component>
+      </Feature>
+    </Feature>
+  </Package>
+</Wix>

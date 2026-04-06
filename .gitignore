@@ -33,9 +33,17 @@ MANIFEST
 *.manifest
 *.spec
 
+# Windows installer artifacts
+*.msi
+*.msm
+*.msp
+*.wixpdb
+*.cab
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
+msi-install.log
 
 # Unit test / coverage reports
 htmlcov/
@@ -175,3 +183,5 @@ cython_debug/
 .pypirc
 
 .DS_Store
+Thumbs.db
+Desktop.ini
