@@ -4,7 +4,7 @@
   "seed_button_with_value": "Seed: {value}",
   "seed_auto_value": "Auto",
   "seed_dialog_title": "Seed setzen",
-  "seed_dialog_label": "Gib eine ganze Zahl als Seed ein. Leer lassen für automatische Zufälligkeit.",
+  "seed_dialog_label": "Gib eine ganze Zahl als Seed ein. Leer lassen für automatische Zufälligkeit.\n\nWenn du einen manuellen Seed speicherst, wird auch die aktuelle Anzahl der Durchläufe mitgespeichert.",
   "seed_auto_button": "Auto",
   "seed_copy_button": "Seed kopieren",
   "seed_save_button": "Seed speichern",
