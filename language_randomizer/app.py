@@ -34,6 +34,10 @@ def _apply_saved_settings(root):
     translator.activateTransliteration = bool(settings.get("activate_transliteration", False))
     translator.translationMode = settings.get("translation_mode", "normal")
     translator.set_random_seed(settings.get("random_seed"))
+    if translator.randomSeed is not None:
+        translator.setLoopTimes = settings.get("random_seed_iterations", 1) or 1
+    else:
+        translator.setLoopTimes = 1
 
     saved_forced = settings.get("forced_languages", [])
     if isinstance(saved_forced, list):
