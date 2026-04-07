@@ -44,6 +44,8 @@
   "close_button": "Luk",
   "settings_header": "Indstillinger",
   "font_label": "Vælg skrifttype:",
+  "font_apply_globally": "Anvend også på menuer, knapper, hjælpetekster og anden UI-tekst",
+  "font_apply_globally_hint": "Hvis den er slået fra, bruges den valgte skrifttype kun til tekstfelter og tekstindhold.",
   "theme_label": "Vælg tema:",
   "ui_language_label": "App-sprog:",
   "activate_transliteration": "Aktivér translitteration",
