@@ -44,6 +44,8 @@
   "close_button": "Close",
   "settings_header": "Settings",
   "font_label": "Select font:",
+  "font_apply_globally": "Also apply to menus, buttons, help text, and other UI text",
+  "font_apply_globally_hint": "If disabled, the selected font is only used for text fields and text content.",
   "theme_label": "Select theme:",
   "ui_language_label": "App language:",
   "activate_transliteration": "Activate Transliteration",
