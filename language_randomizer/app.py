@@ -2,6 +2,7 @@ from tkinter import ttk
 
 from .i18n import set_ui_language, t
 from . import translator
+from .font_utils import apply_saved_font
 from .settings_store import load_settings
 from ttkthemes import ThemedTk
 
@@ -13,9 +14,7 @@ def _apply_saved_settings(root):
     settings = load_settings()
     set_ui_language(settings.get("ui_language", "en"))
 
-    saved_font = settings.get("font_family", "")
-    if saved_font:
-        root.option_add("*Font", f"{saved_font} 12")
+    apply_saved_font(root)
 
     saved_theme = settings.get("theme", "")
     if saved_theme:
@@ -53,4 +52,5 @@ def main():
     root.title(t("app_title"))
     apply_window_icon(root)
     create_main_gui(root)
+    apply_saved_font(root)
     root.mainloop()
