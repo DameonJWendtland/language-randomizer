@@ -44,6 +44,8 @@
   "close_button": "Schließen",
   "settings_header": "Einstellungen",
   "font_label": "Schriftart wählen:",
+  "font_apply_globally": "Auch auf Menüs, Knöpfe, Hilfetexte und andere UI-Texte anwenden",
+  "font_apply_globally_hint": "Wenn deaktiviert, wird die gewählte Schriftart nur für Textfelder und Textinhalte verwendet.",
   "theme_label": "Theme wählen:",
   "ui_language_label": "App-Sprache:",
   "activate_transliteration": "Transliteration aktivieren",
