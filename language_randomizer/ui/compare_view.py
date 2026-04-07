@@ -5,6 +5,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 
+from ..font_utils import apply_saved_font
 from ..i18n import t
 from ..paths import SEMANTIC_MODEL_DIR
 from .context_menu import bind_context_menu
@@ -203,3 +204,4 @@ def open_compare_view(root, original_text, final_text):
 
     left_text.config(state="disabled")
     right_text.config(state="disabled")
+    apply_saved_font(compare_win)
