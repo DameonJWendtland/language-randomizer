@@ -44,6 +44,8 @@
   "close_button": "Stäng",
   "settings_header": "Inställningar",
   "font_label": "Välj teckensnitt:",
+  "font_apply_globally": "Använd även för menyer, knappar, hjälptexter och annan gränssnittstext",
+  "font_apply_globally_hint": "Om den är avstängd används det valda teckensnittet bara för textfält och textinnehåll.",
   "theme_label": "Välj tema:",
   "ui_language_label": "Appspråk:",
   "activate_transliteration": "Aktivera translitterering",
