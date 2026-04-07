@@ -1,6 +1,6 @@
 param(
-    [string]$Version = "2.0.0",
-    [string]$Manufacturer = "Dameon J Wendtland"
+    [string]$Version = "2.0.1",
+    [string]$Manufacturer = "Dameon J. Wendtland"
 )
 
 $ErrorActionPreference = "Stop"
