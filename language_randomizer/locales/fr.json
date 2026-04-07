@@ -44,6 +44,8 @@
   "close_button": "Fermer",
   "settings_header": "Paramètres",
   "font_label": "Sélectionner la police :",
+  "font_apply_globally": "Appliquer aussi aux menus, boutons, textes d'aide et autres textes de l'interface",
+  "font_apply_globally_hint": "Si cette option est désactivée, la police choisie sera utilisée uniquement pour les champs de texte et le contenu textuel.",
   "theme_label": "Sélectionner le thème :",
   "ui_language_label": "Langue de l'application :",
   "activate_transliteration": "Activer la translittération",
