@@ -44,6 +44,8 @@
   "close_button": "Cerrar",
   "settings_header": "Configuración",
   "font_label": "Seleccionar fuente:",
+  "font_apply_globally": "Aplicar también a menús, botones, textos de ayuda y otros textos de la interfaz",
+  "font_apply_globally_hint": "Si está desactivado, la fuente seleccionada solo se usará en campos de texto y contenido textual.",
   "theme_label": "Seleccionar tema:",
   "ui_language_label": "Idioma de la app:",
   "activate_transliteration": "Activar transliteración",
