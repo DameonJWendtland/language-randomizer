@@ -5,6 +5,7 @@ import webbrowser
 from tkinter import filedialog, ttk
 
 from .. import translator
+from ..font_utils import apply_saved_font
 from ..i18n import t
 from .context_menu import bind_context_menu
 from .mousewheel import enable_vertical_mousewheel
@@ -169,6 +170,7 @@ def show_translation_steps():
 
     steps_win.grid_rowconfigure(1, weight=1)
     steps_win.grid_columnconfigure(0, weight=1)
+    apply_saved_font(steps_win)
 
 
 def export_steps():
