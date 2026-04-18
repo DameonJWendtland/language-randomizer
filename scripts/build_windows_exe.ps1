@@ -1,3 +1,7 @@
+param(
+    [switch]$IncludeSemanticModel
+)
+
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -5,7 +9,8 @@ $buildRoot = Join-Path $repoRoot "build\pyinstaller"
 $specRoot = Join-Path $buildRoot "spec"
 $distDir = Join-Path $repoRoot "dist"
 $bundleDir = Join-Path $distDir "LanguageRandomizer"
-$zipPath = Join-Path $distDir "LanguageRandomizer-windows.zip"
+$zipSuffix = if ($IncludeSemanticModel) { "-semantic" } else { "" }
+$zipPath = Join-Path $distDir ("LanguageRandomizer-windows" + $zipSuffix + ".zip")
 $mainScript = Join-Path $repoRoot "main.py"
 $iconPath = Join-Path $repoRoot "language_randomizer\assets\translating.ico"
 $semanticModelDir = Join-Path $repoRoot "build\semantic-model"
@@ -44,11 +49,15 @@ try {
         "--collect-data", "language_randomizer"
     )
 
-    $hasSentenceTransformers = (
-        python -c "import importlib.util; print('yes' if importlib.util.find_spec('sentence_transformers') else 'no')"
-    ).Trim() -eq "yes"
+    if ($IncludeSemanticModel) {
+        $hasSentenceTransformers = (
+            python -c "import importlib.util; print('yes' if importlib.util.find_spec('sentence_transformers') else 'no')"
+        ).Trim() -eq "yes"
 
-    if ($hasSentenceTransformers) {
+        if (-not $hasSentenceTransformers) {
+            throw "Semantic model build requested, but sentence-transformers is not installed."
+        }
+
         if (Test-Path $semanticModelDir) {
             Remove-Item -LiteralPath $semanticModelDir -Recurse -Force
         }
@@ -78,6 +87,9 @@ model.save(str(target))
 
         $pyInstallerArgs += @("--add-data", "$semanticModelDir;language_randomizer\\semantic_model")
     }
+    else {
+        Write-Host "Skipping bundled semantic model for a smaller and faster package."
+    }
 
     $pyInstallerArgs += $mainScript
     python @pyInstallerArgs
@@ -99,6 +111,7 @@ model.save(str(target))
 
     Write-Host ""
     Write-Host "Build complete:"
+    Write-Host "  Mode: $(if ($IncludeSemanticModel) { 'Semantic/full' } else { 'Lite' })"
     Write-Host "  EXE: $bundleDir\\LanguageRandomizer.exe"
     Write-Host "  ZIP: $zipPath"
 }
