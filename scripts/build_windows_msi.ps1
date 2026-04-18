@@ -1,6 +1,7 @@
 param(
     [string]$Version = "2.0.1",
-    [string]$Manufacturer = "Dameon J. Wendtland"
+    [string]$Manufacturer = "Dameon J. Wendtland",
+    [switch]$IncludeSemanticModel
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,10 +10,12 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $distDir = Join-Path $repoRoot "dist"
 $bundleDir = Join-Path $distDir "LanguageRandomizer"
 $wixSource = Join-Path $repoRoot "installer\windows\LanguageRandomizer.wxs"
+$wixLocalization = Join-Path $repoRoot "installer\windows\WixUIOverrides-en-us.wxl"
 $licensePath = Join-Path $repoRoot "installer\windows\installer-notice.rtf"
 $iconPath = Join-Path $repoRoot "language_randomizer\assets\translating.ico"
 $wixBuildRoot = Join-Path $repoRoot "build\wix"
-$msiPath = Join-Path $distDir ("LanguageRandomizer-" + $Version + "-x64.msi")
+$msiFlavor = if ($IncludeSemanticModel) { "Full" } else { "Lite" }
+$msiPath = Join-Path $distDir ("LanguageRandomizer-" + $Version + "-x64_" + $msiFlavor + ".msi")
 $wixPath = "C:\Program Files\WiX Toolset v6.0\bin\wix.exe"
 $productUrl = "https://github.com/DameonJWendtland/language-randomizer"
 $extensionRef = "WixToolset.UI.wixext/6.0.2"
@@ -23,7 +26,8 @@ try {
         throw "WiX CLI not found. Install WiX Toolset Command-Line Tools first."
     }
 
-    & (Join-Path $repoRoot "scripts\build_windows_exe.ps1")
+    $exeBuildScript = Join-Path $repoRoot "scripts\build_windows_exe.ps1"
+    & $exeBuildScript -IncludeSemanticModel:$($IncludeSemanticModel.IsPresent)
     if ($LASTEXITCODE -ne 0) {
         throw "EXE bundle build failed with exit code $LASTEXITCODE."
     }
@@ -54,7 +58,8 @@ try {
         -d AppIconPath="$iconPath" `
         -d LicenseRtfPath="$licensePath" `
         -o $msiPath `
-        $wixSource
+        $wixSource `
+        $wixLocalization
 
     if ($LASTEXITCODE -ne 0) {
         throw "MSI build failed with exit code $LASTEXITCODE."
