@@ -8,16 +8,16 @@
       Scope="perMachine"
       Language="1033"
       InstallerVersion="500">
-    <MediaTemplate EmbedCab="yes" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
     <Icon Id="AppIcon.ico" SourceFile="$(AppIconPath)" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
     <Property Id="ARPURLINFOABOUT" Value="$(ProductUrl)" />
     <Property Id="ARPHELPLINK" Value="$(ProductUrl)" />
-    <Property Id="WixUILicenseRtf" Value="$(LicenseRtfPath)" />
     <Property Id="ApplicationFolderName" Value="Language Randomizer" />
     <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(LicenseRtfPath)" />
 
     <ui:WixUI Id="WixUI_Advanced" />
     <WixVariable Id="override WixUISupportPerUser" Value="0" />
@@ -70,7 +70,7 @@
 
       <Feature
           Id="DesktopShortcutFeature"
-          Title="Desktop shortcut"
+          Title="Desktop Shortcut"
           Description="Create a shortcut on the desktop"
           Level="1000"
           AllowAdvertise="no">
