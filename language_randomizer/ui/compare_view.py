@@ -1,5 +1,6 @@
 import difflib
 import importlib
+import importlib.util
 import re
 import threading
 import tkinter as tk
@@ -27,6 +28,16 @@ def _get_semantic_model_source():
     if modules_file.exists() or config_file.exists():
         return str(SEMANTIC_MODEL_DIR)
     return _SEMANTIC_MODEL_NAME
+
+
+def _bundled_semantic_model_exists():
+    modules_file = SEMANTIC_MODEL_DIR / "modules.json"
+    config_file = SEMANTIC_MODEL_DIR / "config_sentence_transformers.json"
+    return modules_file.exists() or config_file.exists()
+
+
+def _semantic_support_available():
+    return _bundled_semantic_model_exists() or importlib.util.find_spec("sentence_transformers") is not None
 
 
 def _load_semantic_model():
@@ -126,6 +137,7 @@ def open_compare_view(root, original_text, final_text):
 
     textual_ratio = _compute_text_similarity(original_text, final_text)
     textual_similarity_text = t("compare_similarity_textual", value=f"{textual_ratio * 100:.1f}%")
+    semantic_available = _semantic_support_available()
     semantic_similarity_var = tk.StringVar(value="")
     # Keep a strong reference on the window to prevent Tk variable GC from clearing the label.
     compare_win._semantic_similarity_var = semantic_similarity_var
@@ -138,15 +150,17 @@ def open_compare_view(root, original_text, final_text):
     ttk.Label(info_frame, text=textual_similarity_text).grid(row=0, column=0, sticky="w")
     ttk.Label(info_frame, text=length_text).grid(row=0, column=1, sticky="e")
     semantic_label = ttk.Label(info_frame, textvariable=semantic_similarity_var, foreground="#8a5a00")
-    semantic_label.grid(row=1, column=0, columnspan=2, sticky="w", pady=(4, 0))
+    if semantic_available:
+        semantic_label.grid(row=1, column=0, columnspan=2, sticky="w", pady=(4, 0))
 
     if not original_text and not final_text:
-        semantic_similarity_var.set(t("compare_semantic_unavailable"))
+        if semantic_available:
+            semantic_similarity_var.set(t("compare_semantic_unavailable"))
         empty_label = ttk.Label(container, text=t("compare_no_data"), justify="left")
         empty_label.grid(row=1, column=0, columnspan=2, sticky="nsew")
         return
 
-    if original_text.strip() and final_text.strip():
+    if semantic_available and original_text.strip() and final_text.strip():
         semantic_similarity_var.set(t("compare_semantic_loading"))
 
         def _semantic_worker():
@@ -166,7 +180,7 @@ def open_compare_view(root, original_text, final_text):
             compare_win.after(0, _apply_result)
 
         threading.Thread(target=_semantic_worker, daemon=True).start()
-    else:
+    elif semantic_available:
         semantic_similarity_var.set(t("compare_semantic_unavailable"))
 
     left_frame = ttk.Frame(container)
