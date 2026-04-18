@@ -4,6 +4,7 @@ import webbrowser
 from tkinter import ttk
 
 from .. import translator
+from ..font_utils import apply_saved_font, reset_named_fonts
 from ..i18n import (
     get_ui_language,
     get_ui_language_code_from_label,
@@ -82,50 +83,6 @@ def _get_current_theme(root):
         return ""
 
 
-def _apply_font_family_now(root, font_family):
-    named_fonts = (
-        "TkDefaultFont",
-        "TkTextFont",
-        "TkFixedFont",
-        "TkMenuFont",
-        "TkHeadingFont",
-        "TkCaptionFont",
-        "TkSmallCaptionFont",
-        "TkIconFont",
-        "TkTooltipFont",
-    )
-
-    for font_name in named_fonts:
-        try:
-            tk_font.nametofont(font_name).configure(family=font_family)
-        except tk.TclError:
-            pass
-
-    def _update_widget_fonts(widget):
-        try:
-            current_font = widget.cget("font")
-        except tk.TclError:
-            current_font = ""
-
-        if current_font:
-            try:
-                named_font = tk_font.nametofont(current_font)
-                named_font.configure(family=font_family)
-            except tk.TclError:
-                try:
-                    resolved_font = tk_font.Font(font=current_font)
-                    resolved_font.configure(family=font_family)
-                    widget.configure(font=resolved_font)
-                except tk.TclError:
-                    pass
-
-        for child in widget.winfo_children():
-            _update_widget_fonts(child)
-
-    _update_widget_fonts(root)
-    root.update_idletasks()
-
-
 def show_settings(menu_win, main_frame, on_ui_refresh=None):
     for widget in main_frame.winfo_children():
         widget.destroy()
@@ -147,6 +104,17 @@ def show_settings(menu_win, main_frame, on_ui_refresh=None):
         font_dropdown.set(fonts[0])
     font_dropdown.pack(pady=5, fill="x")
     bind_context_menu(font_dropdown)
+
+    font_apply_globally_var = tk.BooleanVar(value=saved_settings.get("font_apply_globally", True))
+    font_scope_chk = ttk.Checkbutton(
+        main_frame,
+        text=t("font_apply_globally"),
+        variable=font_apply_globally_var,
+    )
+    font_scope_chk.pack(pady=(2, 2), anchor="w")
+
+    font_scope_hint = ttk.Label(main_frame, text=t("font_apply_globally_hint"), foreground="grey")
+    font_scope_hint.pack(pady=(0, 8), anchor="w")
 
     theme_label = ttk.Label(main_frame, text=t("theme_label"))
     theme_label.pack(pady=5)
@@ -208,6 +176,7 @@ def show_settings(menu_win, main_frame, on_ui_refresh=None):
             language_dropdown,
             transliteration_var,
             translation_mode_dropdown,
+            font_apply_globally_var,
             on_ui_refresh=on_ui_refresh,
         ),
     )
@@ -220,6 +189,7 @@ def show_settings(menu_win, main_frame, on_ui_refresh=None):
     )
     back_btn.pack(pady=10)
 
+    apply_saved_font(menu_win)
     _fit_window_to_content(menu_win, min_width=400, min_height=430)
 
 
@@ -251,6 +221,7 @@ def show_main_menu(menu_win, main_frame, on_ui_refresh=None):
     close_btn = ttk.Button(main_frame, text=t("close_button"), command=menu_win.destroy)
     close_btn.pack(pady=10)
 
+    apply_saved_font(menu_win)
     _fit_window_to_content(menu_win, min_width=360, min_height=260)
 
 
@@ -261,14 +232,21 @@ def apply_settings(
     language_dropdown,
     transliteration_var,
     translation_mode_dropdown,
+    font_apply_globally_var,
     on_ui_refresh=None,
 ):
+    previous_settings = load_settings()
     selected_font = font_dropdown.get()
+    font_apply_globally = font_apply_globally_var.get()
     selected_theme = theme_dropdown.get()
     selected_ui_language = get_ui_language_code_from_label(language_dropdown.get())
     selected_translation_mode = _get_translation_mode_code_from_label(translation_mode_dropdown.get())
     previous_ui_language = get_ui_language()
     set_ui_language(selected_ui_language)
+    font_settings_changed = (
+        selected_font != previous_settings.get("font_family", "")
+        or font_apply_globally != bool(previous_settings.get("font_apply_globally", True))
+    )
 
     root = tk._default_root
     if root is not None:
@@ -280,14 +258,14 @@ def apply_settings(
                     ttk.Style(root).theme_use(selected_theme)
             except tk.TclError as exc:
                 print("Failed to apply theme:", selected_theme, "-", exc)
-        if selected_font:
-            _apply_font_family_now(root, selected_font)
-            root.option_add("*Font", f"{selected_font} 12")
+        if font_settings_changed:
+            reset_named_fonts(root)
 
     translator.activateTransliteration = transliteration_var.get()
     translator.translationMode = selected_translation_mode
     update_settings(
         font_family=selected_font,
+        font_apply_globally=font_apply_globally,
         theme=selected_theme,
         ui_language=selected_ui_language,
         activate_transliteration=translator.activateTransliteration,
@@ -305,7 +283,7 @@ def apply_settings(
 
     if callable(on_ui_refresh):
         try:
-            on_ui_refresh(force_rebuild=(selected_ui_language != previous_ui_language))
+            on_ui_refresh(force_rebuild=(selected_ui_language != previous_ui_language or font_settings_changed))
         except TypeError:
             on_ui_refresh()
 
@@ -320,3 +298,4 @@ def open_menu(on_ui_refresh=None):
     main_frame.pack(fill="both", expand=True)
 
     show_main_menu(menu_win, main_frame, on_ui_refresh=on_ui_refresh)
+    apply_saved_font(menu_win)

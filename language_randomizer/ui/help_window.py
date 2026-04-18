@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
+from ..font_utils import apply_saved_font
 from ..i18n import t
 from .mousewheel import enable_vertical_mousewheel
 from .window_icon import apply_window_icon
@@ -62,3 +63,4 @@ def open_help():
 
     _add_centered_heading(scrollable_frame, t("help_section_notes"))
     _add_section_text(scrollable_frame, t("help_additional"))
+    apply_saved_font(help_win)

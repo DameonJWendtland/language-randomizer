@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from .. import translator
+from ..font_utils import apply_saved_font, reset_named_fonts
 from ..i18n import t
 from ..settings_store import update_settings
 from ..translator import randomizer, supported_languages
@@ -180,9 +181,11 @@ def create_main_gui(root):
     def refresh_ui(force_rebuild=False):
         root.title(t("app_title"))
         if force_rebuild:
+            reset_named_fonts(root)
             for widget in root.winfo_children():
                 widget.destroy()
             create_main_gui(root)
+            apply_saved_font(root)
 
     def _seed_value_label():
         if translator.randomSeed is None:
@@ -322,6 +325,7 @@ def create_main_gui(root):
         dialog.update_idletasks()
         dialog.geometry(f"{max(dialog.winfo_reqwidth() + 8, 360)}x{max(dialog.winfo_reqheight() + 8, 150)}")
         _refresh_seed_label_wrap()
+        apply_saved_font(dialog)
         entry.focus_set()
         entry.selection_range(0, tk.END)
 

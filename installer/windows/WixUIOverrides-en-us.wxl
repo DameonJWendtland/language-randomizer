@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-US" xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="AdvancedWelcomeEulaDlgTitle" Value="{\WixUI_Font_Title}Default install or advanced options" />
+  <String Id="AdvancedWelcomeEulaDlgDescriptionPerMachine" Value="Click Install to use the default setup for all users. Click Advanced to choose the installation folder and decide whether a desktop shortcut should be created." />
+  <String Id="AdvancedWelcomeEulaDlgDescriptionPerUser" Value="Click Install to use the default setup. Click Advanced to choose the installation folder and decide whether a desktop shortcut should be created." />
+  <String Id="WelcomeEulaDlgLicenseAcceptedCheckBox" Value="I understand these installation options" />
+  <String Id="InstallDirDlgTitle" Value="{\WixUI_Font_Title}Installation Folder" />
+  <String Id="InstallDirDlgDescription" Value="Choose where Language Randomizer should be installed. Click Next to continue to optional features like the desktop shortcut." />
+  <String Id="FeaturesDlgTitle" Value="{\WixUI_Font_Title}Optional Features" />
+  <String Id="FeaturesDlgDescription" Value="Select optional features. Enable Desktop Shortcut if you want an icon on your desktop." />
+</WixLocalization>

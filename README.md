@@ -44,11 +44,22 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_exe.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_msi.ps1
 ```
 
+By default, Windows packages are built in lite mode. This keeps the installer much smaller and faster by not bundling the optional semantic similarity model. The compare view still works, but semantic similarity may show as unavailable.
+
+To build the larger offline semantic package, pass `-IncludeSemanticModel`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_exe.ps1 -IncludeSemanticModel
+powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_msi.ps1 -IncludeSemanticModel
+```
+
 This creates:
 
 - `dist\LanguageRandomizer\LanguageRandomizer.exe`
 - `dist\LanguageRandomizer-windows.zip`
-- `dist\LanguageRandomizer-2.0.0-x64.msi`
+- `dist\LanguageRandomizer-2.0.1-x64_Lite.msi`
+- `dist\LanguageRandomizer-windows-semantic.zip` when `-IncludeSemanticModel` is used
+- `dist\LanguageRandomizer-2.0.1-x64_Full.msi` when `-IncludeSemanticModel` is used
 
 Important:
 
@@ -56,7 +67,7 @@ Important:
 - The MSI is a per-machine installer and requires administrator rights during installation.
 - Windows builds should be created on Windows.
 - macOS and Linux need to be built on their own operating systems.
-- Semantic similarity in the compare view stays optional and may show as unavailable if the extra NLP stack is not bundled.
+- Semantic similarity is optional. Use `-IncludeSemanticModel` only when you want to ship the large offline NLP stack.
 
 ## Project Structure
 
@@ -69,6 +80,7 @@ language-randomizer/
 |-- installer/
 |   `-- windows/
 |       |-- LanguageRandomizer.wxs
+|       |-- WixUIOverrides-en-us.wxl
 |       `-- installer-notice.rtf
 |-- language_randomizer/
 |   |-- __init__.py

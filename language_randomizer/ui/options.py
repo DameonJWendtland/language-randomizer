@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from .. import translator
+from ..font_utils import apply_saved_font
 from ..i18n import t
 from ..settings_store import update_settings
 from .context_menu import bind_context_menu
@@ -79,3 +80,4 @@ def open_options(on_apply=None):
 
     apply_btn = ttk.Button(btn_frame, text=t("apply_button"), command=apply_options)
     apply_btn.pack(side="left")
+    apply_saved_font(options_win)
